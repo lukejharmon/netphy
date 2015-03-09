@@ -85,18 +85,5 @@ simPhyloNetwork<-function(phy, qRate, sProb) {
 	return(res)	
 }
 	
-library(geiger)
-library(network)
-phy<-birthdeath.tree(b=1, d=0, taxa.stop=41)
-phy<-drop.tip(phy, "41")
-
-nw<-simPhyloNetwork(phy, qRate=0.03, sProb=0.03)
-
-nn<-network(nw, directed=F, vertex.attrnames=rownames(nw))
-
-plot(phy)
-plot.network(nn, label=network.vertex.names(nn), mode="circle")
-plot.network(nn, label=network.vertex.names(nn), mode="fruchtermanreingold")
-plot.network(nn, label=network.vertex.names(nn), mode="kamadakawai")
 
 
