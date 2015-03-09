@@ -1,0 +1,102 @@
+
+
+simPhyloNetwork<-function(phy, qRate, sProb) {
+		
+	bt<-sort(branching.times(phy), decr=T)
+	nb<-dim(phy$edge)[1]
+	interactionMatrix<-matrix(nrow=nb, ncol=nb)
+	interactionMatrix[]<-0
+	# step through the tree from root to tips
+	# one speciation event at a time
+	
+	currentEdges<-numeric()
+	rootNumber<-as.numeric(names(bt)[1])
+	
+	qMatrix<-rbind(c(-1, 1), c(1,-1))*qRate
+		
+	for(i in 1:length(bt)) {
+		thisEdge<-as.numeric(names(bt)[i])
+		ancestorRow<-which(phy$edge[,2]==thisEdge)	
+		descendantRow<-which(phy$edge[,1]==thisEdge)
+		
+		if(length(ancestorRow)==0) { #at root of tree
+			#diag(interactionMatrix)[descendantRow]<-1
+			r<-runif(1)
+			if(r<sProb) {
+				interactionMatrix[descendantRow, descendantRow]<-1
+				diag(interactionMatrix)<-0
+			}
+			currentEdges<-c(currentEdges, descendantRow)
+
+		} else {
+				
+			# update other edges up to this speciation event
+			timeSpan<-bt[i-1]-bt[i]
+			tProb<-geiger:::MatrixExp.eig(qMatrix*timeSpan)
+			
+			cn<-length(currentEdges)
+	
+			for(j in 1:(cn-1))
+				for(k in (j+1):cn) {
+					e1<-currentEdges[j]
+					e2<-currentEdges[k]
+					currState<-interactionMatrix[e1,e2]
+					p0<- tProb[currState+1,1]
+					r<-runif(1)
+					if(r<p0) {
+						interactionMatrix[e1,e2]<-0
+						interactionMatrix[e2,e1]<-0
+
+						} else {
+						interactionMatrix[e1,e2]<-1
+						interactionMatrix[e2,e1]<-1
+					}
+				}
+				
+			toCut<-which(currentEdges==ancestorRow)
+			currentEdges<-currentEdges[-toCut]	
+			currentEdges<-c(currentEdges, descendantRow)
+
+			#diag(interactionMatrix)[descendantRow]<-1
+
+			for(j in 1:length(descendantRow)) {
+				# inherit parental interactions
+				interactionMatrix[,descendantRow[j]]<-interactionMatrix[,ancestorRow]
+				interactionMatrix[descendantRow[j],]<-interactionMatrix[ancestorRow,]
+				diag(interactionMatrix)<-0
+
+			}	
+			
+			# do the new species interact with one another?
+			r<-runif(1)
+			if(r<sProb) {interactionMatrix[descendantRow, descendantRow]<-1}
+		}
+				
+	}
+	
+	# get live species
+	nTaxa<-length(phy$tip.label)
+	tips<-which(phy$edge[,2]<=nTaxa)
+	oo<-phy$edge[tips,2]
+	res<-interactionMatrix[tips, tips]
+	rownames(res)<-phy$tip.label[oo]
+	colnames(res)<-phy$tip.label[oo]
+
+	return(res)	
+}
+	
+library(geiger)
+library(network)
+phy<-birthdeath.tree(b=1, d=0, taxa.stop=41)
+phy<-drop.tip(phy, "41")
+
+nw<-simPhyloNetwork(phy, qRate=0.03, sProb=0.03)
+
+nn<-network(nw, directed=F, vertex.attrnames=rownames(nw))
+
+plot(phy)
+plot.network(nn, label=network.vertex.names(nn), mode="circle")
+plot.network(nn, label=network.vertex.names(nn), mode="fruchtermanreingold")
+plot.network(nn, label=network.vertex.names(nn), mode="kamadakawai")
+
+
