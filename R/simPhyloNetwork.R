@@ -1,5 +1,11 @@
-
-
+#' Simulate a model of network evolution on a phylogenetic tree
+#'
+#' This function returns a network with row and column names that match the tree
+#'
+#' @param phy An object of class 'phylo'
+#' @param qRate Transition rate q01 = q10
+#' @param sProb Probability that sister species will interact just after speciation
+#' @export
 simPhyloNetwork<-function(phy, qRate, sProb) {
 		
 	bt<-sort(branching.times(phy), decr=T)
