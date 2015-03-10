@@ -89,7 +89,7 @@ simPhyloNetwork<-function(phy, qRate, sProb) {
 	colnames(res)<-phy$tip.label[oo]
 
 	return(res)	
-}
+} # test
 	
 
 
