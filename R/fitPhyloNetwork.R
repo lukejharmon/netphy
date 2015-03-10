@@ -139,4 +139,4 @@ fitPhyloNetwork<-function(phy, network, pars) {
 	
 	return(cumlnL)	
 	
-}
+} #
