@@ -23,7 +23,7 @@ foo<-function(x) {
   q01<-exp(x[1])
   q10<-exp(x[2])
   pSpec<-exp(x[3])
-  fitPhyloNetwork(phy, network, q01, q10, pSpec)
+  fitPhyloNetwork(phy, network, pars=c(q01, q10, pSpec))
 }
 
 foo(log(c(0.1, 0.1, 0.7)))
@@ -31,10 +31,12 @@ foo(log(c(0.1, 0.1, 0.7)))
 out<-optim(log(c(0.5, 0.5, 0.5)), foo, control=list(trace=6))
 exp(out$par)
 
-tt<-birthdeath.tree(b=1, d=0, taxa.stop=60)
+tt<-sim.bdtree(b=1, d=0, stop="taxa", n=60)
 tt<-drop.tip(tt, "60")
 xx<-simPhyloNetwork(tt, qRate=0.1, sProb=0.5)
-fitPhyloNetwork(tt, xx, q01=0.1, q10=0.1, pSpec=0.5)
+
+# error here
+fitPhyloNetwork(tt, xx, c(0.1, 0.1, 0.5))
 foo<-function(x) {
   q01<-exp(x[1])
   q10<-exp(x[2])

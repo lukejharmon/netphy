@@ -38,7 +38,7 @@ simPhyloNetwork<-function(phy, qRate, sProb) {
 				
 			# update other edges up to this speciation event
 			timeSpan<-bt[i-1]-bt[i]
-			tProb<-geiger:::MatrixExp.eig(qMatrix*timeSpan)
+			tProb<-MatrixExp.eig(qMatrix*timeSpan)
 			
 			cn<-length(currentEdges)
 	
