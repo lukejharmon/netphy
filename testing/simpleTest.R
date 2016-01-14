@@ -35,7 +35,6 @@ tt<-sim.bdtree(b=1, d=0, stop="taxa", n=60)
 tt<-drop.tip(tt, "60")
 xx<-simPhyloNetwork(tt, qRate=0.1, sProb=0.5)
 
-# error here
 fitPhyloNetwork(tt, xx, c(0.1, 0.1, 0.5))
 foo<-function(x) {
   q01<-exp(x[1])
