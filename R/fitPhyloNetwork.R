@@ -50,7 +50,7 @@ fitPhyloNetwork<-function(phy, network, pars) {
 		# get most recent node and daughter species
 		bt<-branching.times(currTree)
 		recentNode<-names(bt)[which(bt==min(bt))][1]
-		daughter<-node.leaves(currTree,recentNode)
+		daughter<-tips(currTree,recentNode)
 		timeInterval<-bt[recentNode]
 		
 		# Calculations for merging species
