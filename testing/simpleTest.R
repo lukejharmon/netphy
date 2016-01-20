@@ -40,7 +40,7 @@ foo<-function(x) {
   q01<-exp(x[1])
   q10<-exp(x[2])
   pSpec<-exp(x[3])
-  fitPhyloNetwork(tt, xx, q01, q10, pSpec)
+  fitPhyloNetwork(tt, xx, c(q01, q10, pSpec))
 }
 
 foo(log(c(0.1, 0.1, 0.5)))
@@ -50,9 +50,9 @@ exp(out$par)
 lnlSurf<-matrix(nrow=9, ncol=9)
 for(fr in 1:9)
   for(br in 1:9)
-    lnlSurf[fr, br]<-fitPhyloNetwork(tt, xx, q01=fr/45, q10=br/45, pSpec=0.5)
+    lnlSurf[fr, br]<-fitPhyloNetwork(tt, xx, c(fr/45, br/45, 0.5))
 
-contour(lnlSurf, levels=320:340, col="red", x=1:9/45, y=1:9/45)	 
+contour(lnlSurf, levels=320:540, col="red", x=1:9/45, y=1:9/45)	 
 contour(lnlSurf, , x=1:9/45, y=1:9/45, add=T)	 
 
 
@@ -74,7 +74,7 @@ frCurr<-parStart
 brCurr<-parStart
 pCurr<-parStart
 
-lnL_save[1]<- - fitPhyloNetwork(tt, xx, q01= frCurr, q10= brCurr, pSpec= pCurr)
+lnL_save[1]<- - fitPhyloNetwork(tt, xx, c(frCurr, brCurr, pCurr))
 frPost[1]<-frCurr
 brPost[1]<-brCurr
 pPost[1]<-pCurr
@@ -96,7 +96,7 @@ for(i in 2: nGen) {
   
   
   lnLpc<-lnL_save[i-1]
-  lnLpp<- - fitPhyloNetwork(tt, xx, q01= frProp, q10= brProp, pSpec= pProp)
+  lnLpp<- - fitPhyloNetwork(tt, xx, c(frProp, brProp, pProp))
   LR<-exp(lnLpp-lnLpc)
   rr<-runif(1)
   if(rr<LR) { # accept
