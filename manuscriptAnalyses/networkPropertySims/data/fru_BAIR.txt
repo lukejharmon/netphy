@@ -1,0 +1,22 @@
+MATRIX 0-1	Cornus florida	Vitis spp.	Rhus radicans	Celastrus orbiculatus	Lindera benzoin	Smilax rotundifolia	Lonicera japonica
+Euphagus carolinus	0	0	0	1	0	0	0
+Cardinalis cardinalis	1	1	0	1	1	1	1
+Parus atricapillus	0	0	1	0	0	0	0
+Zenaidura macroura	0	1	0	0	1	0	0
+Carpodacus purpureus	1	0	0	0	0	0	0
+Colaptes auratus	1	0	1	0	0	0	0
+Quiscalus quiscula	1	1	0	0	0	0	0
+Junco hyemalis	1	0	1	1	0	0	1
+Mimus polyglottos	1	0	1	1	0	1	0
+Turdus migratorius	1	1	0	1	1	0	0
+Sturnus vulgaris	0	0	0	1	0	0	0
+Zonotrichia albicollis	1	1	1	1	1	1	1
+Catharus guttata	1	0	0	1	1	0	0
+Parus bicolor	1	1	1	1	0	0	0
+Pipilo erythophtalmus	1	0	0	0	0	0	0
+Dendroica coronata	0	0	1	0	0	0	0
+Bombycilla cedrorum	0	0	0	1	0	0	0
+Picoides pubescens	0	0	1	0	0	0	0
+Picoides villosus	0	0	1	0	0	0	0
+Melanerpes carolinensis	0	1	1	0	0	0	0
+Vireo olivaceus	1	0	0	0	0	0	0

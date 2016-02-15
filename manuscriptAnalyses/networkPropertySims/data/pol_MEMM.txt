@@ -1,0 +1,80 @@
+MATRIX 0-1	Agrimonia eupatoria	Leontodon autumnalis	Lotus corniculatus	Medicago lupulina	Rubus fruticosus	Hypochaeris radicata	Centaurea nigra	Euphrasia officinalis	Linum catharticum	Convulvulus arvensis	Knautia arvensis	Aethusa cynapium	Eupatorium cannabinum	Plantago major	Leontodon saxatilis	Lathyrus pratensis	Clematis vitalba	Senecio jacobaea	Trifolium pratense	Chamerion angustifolium	Leontodon hispidus	Crepis capillaris	Torilis japonica	Angelica sylvertris	Daucus carota
+Coleoptera sp.1	0	0	0	0	0	0	0	0	0	0	1	0	0	0	1	0	0	0	1	0	1	0	0	0	0
+Coleoptera sp.2	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0
+Coleoptera sp.3	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0
+Coleoptera sp.4	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0
+Coleoptera sp.5	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0
+Coleoptera sp.6	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0
+Coleoptera sp.7	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0
+Cantharidae sp. 1	0	0	0	0	0	0	1	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	1	0	1
+Curculionidae sp. 1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0
+Diptera sp.1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1
+Diptera sp.2	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0
+Diptera sp.3	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	1
+Diptera sp.4	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	1	0	1
+Conipidae sp. 1	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0
+Diptera sp.5	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	1	0	0	1	1	1	0	1
+Diptera sp.6	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	1	0	1
+Scatophaga stercoraria	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	1	0	0	0	1
+Diptera sp.7	0	0	0	0	0	0	1	0	0	0	1	1	1	0	0	0	0	0	1	0	1	1	0	0	1
+Diptera sp.8	0	0	0	0	0	0	0	0	0	0	0	1	1	0	0	0	0	0	0	1	0	0	1	0	1
+Diptera sp.9	0	0	0	0	0	0	0	0	0	0	1	0	1	0	0	0	0	0	0	0	0	0	0	0	1
+Diptera sp.10	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	1	0	0	0	1
+Diptera sp.11	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1
+Diptera sp.12	0	1	0	0	0	0	1	0	0	0	0	1	1	0	0	0	0	0	0	0	1	1	1	1	1
+Diptera sp.13	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1
+Diptera sp.14	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0
+Diptera sp.15	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	1
+Diptera sp.16	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Diptera sp.17	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	1	0	0	0	0
+Diptera sp.18	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0
+Diptera sp.19	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	1
+Eriothrix rufomaculata	1	1	0	0	0	1	1	1	1	0	1	1	1	0	0	0	0	0	1	1	1	0	1	0	1
+Diptera sp.20	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1
+Diptera sp.21	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	1	1	0	1	1	1	1	0	1
+Diptera sp.22	1	1	0	0	0	1	1	0	1	0	1	1	1	0	1	0	1	1	1	1	1	1	1	1	1
+Diptera sp.23	1	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	1	0	0	0
+Diptera sp.24	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0
+Diptera sp.25	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0
+Tephritidae sp.1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1
+Diptera sp.26	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1
+Diptera sp.27	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	1	0	0	1	1
+Chrysotoxum bicinctum	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1
+Episyrphus arbustorum	0	1	0	0	0	0	0	0	0	0	1	0	1	0	0	0	0	0	0	0	1	0	0	1	1
+E. balteatus	1	0	0	0	0	1	1	0	1	1	0	1	1	0	1	0	1	1	1	0	1	0	1	0	1
+Eristalis pertinax	0	0	0	0	0	0	0	0	0	0	1	0	1	0	0	0	0	0	1	0	1	0	1	0	0
+E. tenax	0	1	0	0	0	0	1	0	0	0	1	0	1	0	0	0	0	0	1	0	1	0	0	0	1
+Helophilus pendulus	0	0	0	0	0	0	1	1	0	0	0	0	0	0	0	0	0	0	0	0	1	0	1	0	0
+H. trivittatus	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0
+Melanostoma mellinum	1	0	0	0	0	1	0	0	1	0	0	1	0	1	0	0	0	1	0	0	0	1	1	0	1
+M. scalare	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	1	1	1	1	1	0	1
+Meliscaeva auricollis	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	1	0	1
+Metasyrphus corollae	1	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1
+Platycheirus albimanus	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	1
+P. clypeatus	1	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	1
+P. scutatus	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1
+ Rhingia campestris	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	1	1	0	0	0	1
+Scaeva pyrastri	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0
+Sphaerophoria scripta	1	1	0	1	0	1	1	0	1	1	1	0	1	0	1	0	0	1	1	1	1	1	1	0	1
+Syritta pipiens	0	1	0	0	1	0	0	0	1	0	1	0	1	0	0	0	0	0	1	0	1	0	1	1	1
+Syrphus ribesii	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1
+S. vitripennis.	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	1
+Xanthogramma pedissequum	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1
+Bombus lapidarius	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	1	1	0	0	0	0	1
+B. muscorum	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	1	0	0	0	0	0	0
+B. pascuorum	0	0	1	0	0	0	1	0	0	0	1	0	0	0	0	1	0	0	1	0	0	0	0	0	0
+B. terrestris	0	0	0	0	0	0	1	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Psithyrus sp.1	0	0	0	0	0	0	1	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Apis mellifera	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Parasitica	0	0	0	0	0	0	0	1	0	0	0	0	1	0	0	0	1	0	0	0	1	1	1	1	1
+Formicidae sp. 1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0
+Symphyta sp. 1	0	0	0	0	0	0	0	0	0	0	1	1	0	0	0	0	0	0	0	0	1	1	1	1	1
+Unidentified sp. 1	0	0	0	0	0	0	1	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	1	0	0
+Solitary bees.	0	1	0	1	0	1	1	0	1	1	0	0	0	0	0	0	0	1	1	1	1	1	0	0	1
+Polyommatus icarus	0	0	1	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0
+Pyonia tithonus	0	0	0	0	0	0	1	0	0	0	1	0	1	0	0	0	0	0	0	0	0	0	0	0	0
+Pieris brassicae	0	1	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Incurvariidae sp. 1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	1
+Maniola jurtina	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	1
+Thymelicus sylvestris	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0
+Aglais urticae	0	0	0	0	0	0	0	0	0	0	1	0	1	0	0	0	0	0	0	0	1	0	0	0	0

@@ -1,0 +1,10 @@
+MATRIX 0-1	Chisoch	Cissus	Elmerrillia	F. gul	F. odoardi	F275	F371	Hemalant	Gastonia	Enlosp.	S. Sogoren.	Dysoxylum	Myristica	Pandams	Scheff.	F202	F181	F246	Syrygum	Zingiberae	Aglaia	C. arist.	Aporusa	Carthium	F. drupuea	F217	Glochid.	Piper	Shoamen	Sterculia	Ulrvia
+Manucodia keraudrenii	1	1	1	1	1	1	1	1	1	1	1	1	1	0	0	1	1	1	1	0	0	0	0	0	1	1	0	1	0	0	1
+Diphyllodes magnificus	1	1	1	1	1	1	0	1	1	1	1	1	1	1	1	1	0	1	0	1	0	1	0	1	0	0	1	0	1	0	0
+Parotia lawesii	1	1	1	1	1	1	1	1	1	1	1	1	1	0	1	0	1	0	1	0	1	0	0	0	0	0	0	0	0	1	0
+Paradisaea raggiana	1	1	1	1	1	1	1	1	1	1	1	1	1	1	0	0	0	0	1	0	1	0	0	0	0	0	0	0	0	0	0
+Lophorina superba	1	1	1	1	1	1	1	1	0	1	1	0	0	1	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0
+Paradisaea rudolphi	1	1	0	1	0	1	1	1	1	0	0	0	0	1	1	0	1	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Manucodia chalybatus	1	0	1	1	1	1	1	0	0	0	0	0	0	0	0	1	0	1	0	1	0	1	0	0	0	0	0	0	0	0	0
+Ptiloris magnificus	1	1	0	0	1	0	0	1	1	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Epimachus albertisii	1	1	1	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0

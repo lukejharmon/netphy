@@ -1,0 +1,30 @@
+Broadstone_Stream_FW-O	Scirtidae (previous Helodidae) sp._larvae	Polypedilum albicorne _larvae	Micropsectra bidentata _larvae	Brillia modesta _larvae	Corynoneura lobata _larvae	Heterotrissocladius marcidus _larvae	Prodiamesa olivacea _larvae	Macropelopia nebulosa _larvae	Trissopelopia longimana _larvae	Zavrelimyia barbatipes _larvae	Simulium _larvae	Dicranota _larvae	Pedicia _larvae	Tipulidae_larvae	Diptera_larvae	Sialis fuliginosa _larvae	Leuctra hippopus _larvae	Leuctra nigra _larvae	Nemurella pictetii _larvae	Siphonoperla torrentium _larvae	Plectrocnemia conspersa _larvae	Adicella reducta _larvae	Potamophylax cingulatus _larvae	Paraleptophlebia submarginata _larvae	Cordulegaster boltonii _larvae	Niphargus aquilex _adults	Asellus meridianus _adults	Oligochaeta_-999	Oligochaeta_larvae; adults
+Scirtidae (previous Helodidae) sp._larvae	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	1	0	0	0	0
+Polypedilum albicorne _larvae	0	0	0	0	0	0	0	1	1	1	0	1	1	0	0	1	0	0	0	1	1	0	0	0	1	0	0	0	0
+Micropsectra bidentata _larvae	0	0	0	0	0	0	0	1	1	1	0	1	1	0	0	1	0	0	0	1	1	0	0	0	1	0	0	0	0
+Brillia modesta _larvae	0	0	0	0	0	0	0	1	1	1	0	1	1	0	0	1	0	0	0	0	1	0	0	0	1	0	0	0	0
+Corynoneura lobata _larvae	0	0	0	0	0	0	0	1	1	0	0	0	0	0	0	1	0	0	0	1	1	0	0	0	1	0	0	0	0
+Heterotrissocladius marcidus _larvae	0	0	0	0	0	0	0	1	1	1	0	1	1	0	0	1	0	0	0	1	1	0	0	0	1	0	0	0	0
+Prodiamesa olivacea _larvae	0	0	0	0	0	0	0	1	1	1	0	1	1	0	0	1	0	0	0	1	1	0	0	0	1	0	0	0	0
+Macropelopia nebulosa _larvae	0	0	0	0	0	0	0	1	1	1	0	1	0	0	0	1	0	0	0	1	1	0	0	0	1	0	0	0	0
+Trissopelopia longimana _larvae	0	0	0	0	0	0	0	1	1	1	0	1	1	0	0	1	0	0	0	1	1	0	0	0	1	0	0	0	0
+Zavrelimyia barbatipes _larvae	0	0	0	0	0	0	0	1	1	1	0	1	0	0	0	1	0	0	0	1	1	0	0	0	1	0	0	0	0
+Simulium _larvae	0	0	0	0	0	0	0	1	1	1	0	0	0	0	0	1	0	0	0	1	1	0	0	0	1	0	0	0	0
+Dicranota _larvae	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	1	0	0	0	1	0	0	0	0
+Pedicia _larvae	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	1	0	0	0	1	0	0	0	0
+Tipulidae_larvae	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	1	0	0	0	0	1	0	0	0	1	0	0	0	0
+Diptera_larvae	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0
+Sialis fuliginosa _larvae	0	0	0	0	0	0	0	1	0	0	0	1	1	0	0	1	0	0	0	0	1	0	0	0	1	0	0	0	0
+Leuctra hippopus _larvae	0	0	0	0	0	0	0	1	1	0	0	0	0	0	0	1	0	0	0	1	1	0	0	0	1	0	0	0	0
+Leuctra nigra _larvae	0	0	0	0	0	0	0	1	1	1	0	1	1	0	0	1	0	0	0	1	1	0	0	0	1	0	0	0	0
+Nemurella pictetii _larvae	0	0	0	0	0	0	0	1	1	1	0	0	1	0	0	1	0	0	0	1	1	0	0	0	1	0	0	0	0
+Siphonoperla torrentium _larvae	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	1	0	0	0	1	1	0	0	0	1	0	0	0	0
+Plectrocnemia conspersa _larvae	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	1	0	0	0	0	1	0	0	0	1	0	0	0	0
+Adicella reducta _larvae	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0
+Potamophylax cingulatus _larvae	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	1	0	0	0	0	1	0	0	0	1	0	0	0	0
+Paraleptophlebia submarginata _larvae	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	1	0	0	0	1	0	0	0	0
+Cordulegaster boltonii _larvae	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	1	0	0	0	1	0	0	0	0
+Niphargus aquilex _adults	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	1	0	0	0	0	1	0	0	0	0	0	0	0	0
+Asellus meridianus _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0
+Oligochaeta_-999	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0
+Oligochaeta_larvae; adults	0	0	0	0	0	0	0	1	1	1	0	0	0	0	0	0	0	0	0	1	1	0	0	0	1	0	0	0	0

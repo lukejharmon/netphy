@@ -1,0 +1,19 @@
+MATRIX 0-1	Cerastium alpinum	Caltha palustris	Papaver radicatum	Potentilla vahliana	Dryas integrifolia	Geum rossii	Astragalus alpinus	Oxytropis arctica	Petasites frigidus	Arnica alpina	Taraxacum sp.
+Boloria improba	0	0	0	0	1	0	0	0	0	0	0
+Colias hecla	0	0	0	0	0	0	1	0	0	0	0
+Colias nastes	0	0	0	0	0	0	1	0	0	0	0
+Anarta richardsoni	0	0	0	0	0	0	0	1	0	0	0
+Rhamphomyia sp.	0	0	0	0	0	0	0	0	0	0	1
+Boreellus atriceps	0	0	0	1	0	0	0	0	0	0	1
+Protocalliphora sp.	0	0	0	1	0	0	0	0	0	0	0
+Spilogona aesturium	0	0	0	0	0	0	0	0	0	0	1
+Spilogona almquistii	0	1	1	1	1	1	0	0	0	1	1
+Spilogona dorsata	0	1	0	1	0	0	0	0	0	0	0
+Spilogona hurdiana	0	1	0	0	0	0	0	0	0	0	0
+Spilogona latilamina	0	0	0	1	0	0	0	0	0	0	0
+Spilogona melanosoma	0	1	0	1	0	0	0	0	0	0	0
+Spilogona projecta	1	0	0	0	1	0	0	0	0	0	0
+Spilogona sanctipauli	1	1	0	1	1	0	0	0	0	1	1
+Eupogonomyia probilofensis	0	0	0	1	1	0	0	0	0	1	0
+Pogonomyiodes segnis	0	0	1	1	1	0	0	0	0	0	0
+Bombus polaris	0	0	0	0	0	0	1	0	1	0	0

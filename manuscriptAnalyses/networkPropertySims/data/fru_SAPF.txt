@@ -1,0 +1,9 @@
+MATRIX 0-1	Symplocos prunifolia	Cleyera japonica	eurya japonica	Schefflera octophylla	Myrsine sguinii	Daphniphyllum teijsmannii	Myrica rubra	Ardisia sieboldii	Taxillus yadoriki	Vaccinium bracteatum	Prunus jamasakura	Neolitsea aciculata	Persea thunbergii	Litsea acuminata	Diospyros morrisiana	Ilex goshiensis	Ilex rotunda	Lonicera affinis	Psychotria serpens	Kadsura japonica	Syzygium buxifolium	Rhaphiolepis indica	Elaeocarpus japonica	Elaeocarpus sylvestris	Morinda umbellata	Neolitsea sericea	Actinidia arguta
+Hypsipetes amaurotis	1	1	1	1	1	1	1	1	1	0	1	1	1	1	0	0	0	0	0	0	0	0	0	0	0	0	0
+Turdus pallidus	1	1	1	1	1	0	0	1	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Zosterops japonica	1	1	1	1	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Sphenurus formosae	1	1	1	0	0	0	1	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0
+Columba janthina	0	1	0	1	0	1	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Turdus chrysolaus	1	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Ficedula narcissina	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Turdus dauma	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0

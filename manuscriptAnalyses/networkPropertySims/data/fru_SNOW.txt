@@ -1,0 +1,15 @@
+MATRIX 0-1	Miconia spp.	Trema micrantha	Ficus clusiifolia	Sloanea stipilata	Protium heptaphyllum	Cecropia peltata	Didymopanax morototoni	Hieronyma caribaea	Div. spp.	Alchornea glandulosa	Sapium aucuparium	Lacistema aggregatum	Laetia procera	Calycolpus glaber	Cordia bicolor	Coussarea paniculata	Cordia curassavica	Ficus tobagensis	Clusia spp.	Clidemia spp.	Chiococca alba	Ficus citrifolia	Doliocarpus dentatus	Wulffia baccata	Rhipsalis sp.	Ilex sp.	Eugenia baileyi	Myrcia sp.	Henriettea sp.	Davilla aspera	Rourea surinamensis	Anthurium gracile	Anthurium scandens	Phytolacca rivinoides	Byrsonima spicata	Cupania sp.	Myrcia leptoclada	Psidium guajava	Isertia parviflora	Psychotria spp.	Aegiphilia integrifolia	Piper sp.	Castilloa elastica	Norantea guianensis	Aechmaea dichlamydea	Aechmaea mertensii	Aechmaea nudicaulis	Gravisia aquilega	Unid.spp.	Solanum sp.
+Ramphocelus carbo	1	1	0	1	1	1	1	0	0	0	0	1	1	1	0	1	1	1	0	1	0	0	0	1	0	1	0	0	1	1	0	1	0	1	0	0	0	1	1	0	0	0	1	0	1	1	0	1	1	1
+Tangara gyrola	1	1	1	1	1	1	1	1	1	1	1	1	0	0	1	0	0	1	0	1	1	1	0	1	0	1	0	0	1	0	0	0	0	0	1	0	1	0	0	1	1	0	0	1	0	0	0	0	0	1
+Tachyphonus rufus	1	1	1	1	1	1	0	1	1	0	0	0	1	0	1	1	1	0	0	1	0	1	0	0	0	0	0	0	1	1	0	1	1	1	0	0	0	0	1	0	0	0	0	0	1	1	1	1	1	0
+Tangara mexicana	1	1	1	0	1	1	1	1	1	0	0	1	1	1	1	0	1	1	0	0	1	1	0	0	1	1	1	1	0	0	0	0	0	0	0	0	0	1	0	0	1	0	0	0	0	0	0	0	0	0
+Dacnis cayana	1	1	1	1	1	1	1	1	1	1	1	1	1	1	0	0	0	0	1	0	0	0	1	1	0	0	0	0	0	0	1	0	0	0	1	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0
+Thraupis episcopus	1	1	1	1	1	1	1	0	0	1	0	1	1	1	1	1	1	0	0	0	0	0	1	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	1	0	0	0	0	0	0	0
+Thraupis palmarum	1	1	1	1	1	1	1	0	0	1	0	1	1	1	1	1	0	0	0	0	0	0	1	0	1	0	1	0	0	1	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Euphonia violacea	1	1	1	0	1	0	0	0	1	0	0	0	0	0	0	1	0	1	0	1	1	1	0	0	1	0	0	0	0	0	0	1	1	0	0	0	1	0	0	0	0	1	0	0	0	0	1	0	0	0
+Chlorophanes spiza	1	1	1	0	1	1	1	1	1	1	1	1	0	0	0	0	0	1	1	0	1	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Coereba flaveola	1	1	1	1	0	1	1	1	1	0	1	0	0	1	1	0	1	0	0	0	0	0	0	0	1	0	0	0	0	0	1	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Tangara guttata	1	1	1	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0
+Cyanerpes caeruleus	1	1	1	0	0	0	0	1	1	1	1	0	0	0	0	0	0	0	1	0	0	0	0	1	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Cyanerpes cyaneus	1	1	1	1	0	0	0	0	0	0	1	0	0	0	0	0	0	0	1	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Tachyphonus luctuosus	1	0	0	1	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0

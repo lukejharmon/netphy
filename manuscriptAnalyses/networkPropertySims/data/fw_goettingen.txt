@@ -1,0 +1,25 @@
+Goettingen_PW-O	Pegomya _pupae	Gymnophora arcuata _pupae	Megaselia _pupae	Megaselia ruficornis _pupae	Limosina sp._pupae	Aspilota (Species 2)_adults	Aspilota (Species 3)_adults	Aspilota (Species 5)_adults	Aphelopus holomelas _adults	Aphelopus melaleucus _adults	Aphelopus serratus _adults	Dendrocerus carpenteri _adults	Eulophus larvarum _adults	Pediobius foliorum _adults	Alloxysta victrix _adults	Kleidotoma psiloides _adults	Aphidius ervi _adults	Aspilota _adults	Orthostigma _adults	Pentapleura _adults	Atractodes _adults	Basalys parva _adults	Idiotypa nigriceps _adults	Ismarus dorsiger _adults
+Pegomya _pupae	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4	0	0	0
+Gymnophora arcuata _pupae	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4	0	0	0	0	0	0
+Megaselia _pupae	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4	4	0	0	0	0	0
+Megaselia ruficornis _pupae	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4	4	0	0	0	0	0
+Limosina sp._pupae	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4	0	0	0	4	0	0	0	0
+Aspilota (Species 2)_adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4	4	0
+Aspilota (Species 3)_adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4	4	0
+Aspilota (Species 5)_adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4	4	0
+Aphelopus holomelas _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4
+Aphelopus melaleucus _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4
+Aphelopus serratus _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4
+Dendrocerus carpenteri _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Eulophus larvarum _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	4	0	0	0	0	0	0	0	0	0	0
+Pediobius foliorum _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Alloxysta victrix _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Kleidotoma psiloides _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4	0	0
+Aphidius ervi _adults	0	0	0	0	0	0	0	0	0	0	0	4	0	0	4	0	0	0	0	0	0	0	0	0
+Aspilota _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Orthostigma _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4	4	0
+Pentapleura _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	4	0	0
+Atractodes _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Basalys parva _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Idiotypa nigriceps _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Ismarus dorsiger _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0

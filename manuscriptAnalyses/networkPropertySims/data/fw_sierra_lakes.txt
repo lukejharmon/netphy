@@ -1,0 +1,38 @@
+Sierra_Lakes_FW-OP	Oligochaeta_-999	Chydorus sphaericus _-999	Daphnia middendorffiana _-999	Daphnia rosea _-999	Hesperodiaptomus shoshone _-999	Leptodiaptomus signicauda _-999	Cyclopoda_-999	Sialis _-999	Hydroporini_adults	Hydroporini_larvae; adults	Agabus _-999	Chironomidae_-999	Culex _-999	Corixidae_-999	Polycentropus _-999	Desmona _-999	Psychoglypha _-999	Hesperophylax _-999	Limnephilus _-999	Ameletus _-999	Callibaetis ferrugineus _-999	Oncorhynchus mykiss _-999	Oncorhynchus mykiss _adults	Oncorhynchus mykiss aguabonita_-999	Oncorhynchus mykiss aguabonita_adults	Salmo trutta _-999	Salmo trutta _adults	Salvelinus fontinalis _-999	Salvelinus fontinalis _adults	Rana muscosa _adults	Rana muscosa _larvae	Thamnophis elegans elegans_-999	Pisidium _-999	Kellicottia _-999	Keratella _-999	Keratella quadrata _-999	Polyarthra _-999
+Oligochaeta_-999	0	0	0	0	0	0	0	1	0	1	1	0	0	1	1	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Chydorus sphaericus _-999	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	1	0	1	0	1	0	0	0	0	0	0	0	0
+Daphnia middendorffiana _-999	0	0	0	0	1	0	0	0	0	1	1	0	0	1	0	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Daphnia rosea _-999	0	0	0	0	1	0	0	0	0	1	1	0	0	1	0	0	0	0	0	0	0	0	1	0	1	0	1	0	1	0	0	0	0	0	0	0	0
+Hesperodiaptomus shoshone _-999	0	0	0	0	0	0	0	0	0	1	1	0	0	1	0	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Leptodiaptomus signicauda _-999	0	0	0	0	1	0	0	0	0	1	1	0	0	1	0	0	0	0	0	0	0	0	1	0	1	0	1	0	1	0	0	0	0	0	0	0	0
+Cyclopoda_-999	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	1	0	1	0	1	0	0	0	0	0	0	0	0
+Sialis _-999	0	0	0	0	0	0	0	0	0	1	1	0	0	1	1	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Hydroporini_adults	0	0	0	0	0	0	0	1	0	0	1	0	0	1	1	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Hydroporini_larvae; adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Agabus _-999	0	0	0	0	0	0	0	1	0	1	0	0	0	0	1	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Chironomidae_-999	0	0	0	0	0	0	0	1	0	1	1	0	0	1	1	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Culex _-999	0	0	0	0	0	0	0	1	0	1	1	0	0	1	1	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Corixidae_-999	0	0	0	0	0	0	0	1	0	1	1	0	0	0	1	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Polycentropus _-999	0	0	0	0	0	0	0	1	0	0	0	0	0	0	1	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Desmona _-999	0	0	0	0	0	0	0	1	0	0	0	0	0	0	1	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Psychoglypha _-999	0	0	0	0	0	0	0	1	0	0	0	0	0	0	1	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Hesperophylax _-999	0	0	0	0	0	0	0	1	0	0	0	0	0	0	1	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Limnephilus _-999	0	0	0	0	0	0	0	1	0	0	0	0	0	0	1	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Ameletus _-999	0	0	0	0	0	0	0	1	0	1	1	0	0	1	1	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Callibaetis ferrugineus _-999	0	0	0	0	0	0	0	1	0	1	1	0	0	1	1	0	0	0	0	0	0	0	1	0	1	0	1	0	1	1	0	0	0	0	0	0	0
+Oncorhynchus mykiss _-999	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	1	0	1	0	1	0	0	0	0	0	0	0	0
+Oncorhynchus mykiss _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Oncorhynchus mykiss aguabonita_-999	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	1	0	1	0	1	0	0	0	0	0	0	0	0
+Oncorhynchus mykiss aguabonita_adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Salmo trutta _-999	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	1	0	1	0	1	0	0	0	0	0	0	0	0
+Salmo trutta _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Salvelinus fontinalis _-999	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	1	0	1	0	1	0	0	0	0	0	0	0	0
+Salvelinus fontinalis _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Rana muscosa _adults	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0
+Rana muscosa _larvae	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	1	0	1	0	1	0	1	0	0	0	0	0	0	0	0
+Thamnophis elegans elegans_-999	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Pisidium _-999	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	1	0	1	0	1	0	0	0	0	0	0	0	0
+Kellicottia _-999	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Keratella _-999	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Keratella quadrata _-999	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Polyarthra _-999	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0

@@ -1,0 +1,62 @@
+MATRIX 0-1	Achillea millefolium	Centaurea nigra	Cirsium arvense	Hypochoeris radicata	Lathyrus pratensis	Leucanthemum vulgare	Lotus corniculatus	Lychnis flos-cucculi	Plantago lanceolata	Prunella vulgaris	Ranunculus acris	Taraxacum officinale agg.	Trifolium dubium	Trifolium pratense	Trifolium repens	Vicia cracca	Vicia sativa
+Bombus terr/luc	0	0	0	1	1	1	1	0	0	1	1	0	1	0	1	1	1
+Bombus hortorum	0	0	0	0	1	1	1	0	0	0	0	0	0	0	0	1	1
+Bombus lapidarius	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0
+Bombus pascuorum	0	0	0	1	1	1	1	1	0	1	0	0	1	1	0	1	1
+Bombus pratorum	0	0	0	0	0	1	1	0	0	0	0	0	0	1	0	0	0
+Psithyrus vest	0	0	0	0	0	1	1	0	0	0	0	0	0	0	0	0	0
+Andrena haemorrhoa	0	0	0	1	0	1	0	0	0	0	0	0	1	0	0	0	0
+Andrena pubescens	0	0	0	0	0	1	1	0	0	0	0	0	0	0	0	0	0
+Andrena wilkella	0	0	0	0	1	1	1	0	0	0	0	0	1	0	0	1	0
+Lasioglossum calceatum	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0
+Lasioglossum leucozonium	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0
+Lasioglossum villosulum	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0
+Megachile willughbiella	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0
+Anosymia sp.	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Cheilosia albitarsis	0	0	0	0	0	1	0	0	0	0	1	0	0	0	0	0	0
+Chrysogaster sp	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Eristalinus sepulcharius	1	0	0	1	0	1	0	0	0	0	1	0	0	0	0	0	0
+Eristalis intricarius	1	0	0	1	0	1	0	0	0	0	1	0	0	0	0	0	0
+Eristalis nemorum	0	0	0	1	0	1	0	0	0	0	0	0	0	0	0	0	0
+Eristalis pertinax	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Eristalis tenax	0	0	0	0	0	1	1	0	0	0	0	0	0	0	0	0	0
+Helophilus sp.	1	0	0	1	0	1	1	0	0	0	1	1	1	0	0	1	0
+Helophilus trivittatus	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Lejogaster splendida	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Melanostoma sp.	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Meliscaeva	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0
+Neoascia tenur	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0
+Parhelophilus sp	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Platycheirus	0	0	0	0	0	1	1	0	0	0	0	0	0	0	0	0	0
+Sphaerophoria sp.	0	0	0	1	1	1	0	0	0	0	0	0	0	0	0	0	0
+Syrphus sp	0	0	0	1	0	1	0	0	1	0	0	0	0	0	0	0	0
+Syritta pipiens	0	0	0	1	0	1	0	0	0	0	0	0	0	0	0	0	0
+Tropidia scitta	0	0	0	1	0	1	0	0	0	0	1	0	0	0	0	0	0
+Anthomyidae species 1	0	0	0	1	0	1	0	0	0	0	1	0	0	0	0	0	0
+Empis livida	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Eriothrix rufomaculatus	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Lucillia sp	0	0	0	0	0	1	1	0	0	0	0	0	0	0	0	0	0
+Chloromyia formosa (stratiomyidae)	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0
+Nemotelus pantherinus	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Odontomyia tigrina	0	0	0	0	0	1	1	0	0	0	0	0	0	0	0	0	0
+Odontomyia viridula	1	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Phaonia incarna	1	1	0	1	1	1	1	0	0	0	1	0	0	0	0	1	0
+Pollenia sp	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	1
+Rhagio tringarius	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Sarcophagus sp.	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Scathophaga stercoraria	0	0	0	0	0	1	1	0	0	0	0	0	0	0	0	0	0
+Tetanocera ferruginea (Sciomyidae)	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Lasiommata megera (wall)	0	0	0	0	0	1	1	0	0	0	1	0	0	0	0	0	0
+Lycaena phlaeas (small copper)	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Maniola jurtina	1	1	1	0	0	1	1	0	0	1	0	0	0	0	0	1	0
+Polyommatus icarus (common blue)	0	0	0	0	0	1	1	0	0	0	0	0	0	0	0	0	0
+Pyronia tithonus (gatekeeper)	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0
+Ochlodes venata (large skipper)	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	1	0
+Thymelicus sp.	0	0	0	1	0	1	1	0	0	0	0	0	0	0	0	0	0
+Adela rufimatrella	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Autographa (large brown moth)	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0
+Oligia sp. (marbled minor)	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Zygaena filipendulae (6-spot burnet)	0	1	0	0	0	0	1	0	0	1	0	0	0	0	0	1	0
+micromoth	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Malachius viridus (blue-green beetle)	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
+Rhagonycha fulva	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0
