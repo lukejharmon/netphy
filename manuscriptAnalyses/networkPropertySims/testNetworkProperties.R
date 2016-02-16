@@ -44,7 +44,7 @@ colnames(simStatistics)<-c("qRate", "sProb", "nnode", "density", "avg_degree", "
 simStatistics[,1]<-rep(qq, each=100, 10)
 simStatistics[,2]<-rep(sp, each=1000)
 
-for(i in 4392:length(simStatistics)) {
+for(i in 1:10000) {
   tt<-birthdeath.tree(b=1, d=0, taxa.stop=50)
   tt<-drop.tip(tt, "50")
   xx<-simPhyloNetwork(tt, qRate=simStatistics[i,1], sProb=simStatistics[i,2])
@@ -59,17 +59,67 @@ for(i in 4392:length(simStatistics)) {
   cat(i, "\n")
 }
 
-library(ggplot2)
-type<-rep(c("data", "sim"), times=c(length(theFoodWebs), 100))
-rr<-rbind(networkStatistics, simStatistics)
-allData<-data.frame(type, rr)
+colnames(simStatistics)
+plot(simStatistics[,c(2,4)])
 
-
-pdf("../comparisons.pdf")
-plot(allData[,c("type", "density")])
-plot(allData[,c("type", "avg_degree")])
-plot(allData[,c("type", "avg_path_length")])
-plot(allData[,c("type", "clustering_coefficient")])
-plot(allData[,c("type", "cohesion")])
-plot(allData[,c("type", "centr_degree")])
+pdf("../density_sims.pdf", width=24, height=12)
+layout(matrix(1:10, nrow=2, ncol=5, byrow=T))
+for(i in 1:10) {
+  rr<-which(simStatistics[,2]==sp[i])
+  xx<-as.factor(c(simStatistics[rr,1], rep("data", length(theFoodWebs))))
+  yy<-c(simStatistics[rr,4], networkStatistics[,2])
+  plot(xx,yy,main=paste("sp = ", sp[i]), xlab="q", ylab="density")
+}
 dev.off()
+
+pdf("../avg_degree_sims.pdf", width=12, height=6)
+layout(matrix(1:10, nrow=2, ncol=5, byrow=T))
+for(i in 1:10) {
+  rr<-which(simStatistics[,2]==sp[i])
+  xx<-as.factor(c(simStatistics[rr,1], rep("data", length(theFoodWebs))))
+  yy<-c(simStatistics[rr,5], networkStatistics[,3])
+  plot(xx,yy,main=paste("sp = ", sp[i]), xlab="q", ylab="degree")
+}
+dev.off()
+
+pdf("../avg_pathlength_sims.pdf", width=12, height=6)
+layout(matrix(1:10, nrow=2, ncol=5, byrow=T))
+for(i in 1:10) {
+  rr<-which(simStatistics[,2]==sp[i])
+  xx<-as.factor(c(simStatistics[rr,1], rep("data", length(theFoodWebs))))
+  yy<-c(simStatistics[rr,6], networkStatistics[,4])
+  plot(xx,yy,main=paste("sp = ", sp[i]), xlab="q", ylab="path length")
+}
+dev.off()
+
+
+pdf("../avg_clustering_coefficient_sims.pdf", width=12, height=6)
+layout(matrix(1:10, nrow=2, ncol=5, byrow=T))
+for(i in 1:10) {
+  rr<-which(simStatistics[,2]==sp[i])
+  xx<-as.factor(c(simStatistics[rr,1], rep("data", length(theFoodWebs))))
+  yy<-c(simStatistics[rr,7], networkStatistics[,5])
+  plot(xx,yy,main=paste("sp = ", sp[i]), xlab="q", ylab="clustering_coefficient")
+}
+dev.off()
+
+pdf("../graphcohesion_sims.pdf", width=12, height=6)
+layout(matrix(1:10, nrow=2, ncol=5, byrow=T))
+for(i in 1:10) {
+  rr<-which(simStatistics[,2]==sp[i])
+  xx<-as.factor(c(simStatistics[rr,1], rep("data", length(theFoodWebs))))
+  yy<-c(simStatistics[rr,8], networkStatistics[,6])
+  plot(xx,yy,main=paste("sp = ", sp[i]), xlab="q", ylab="graph cohesion")
+}
+dev.off()
+
+pdf("../centralization_sims.pdf", width=12, height=6)
+layout(matrix(1:10, nrow=2, ncol=5, byrow=T))
+for(i in 1:10) {
+  rr<-which(simStatistics[,2]==sp[i])
+  xx<-as.factor(c(simStatistics[rr,1], rep("data", length(theFoodWebs))))
+  yy<-c(simStatistics[rr,9], networkStatistics[,6])
+  plot(xx,yy,main=paste("sp = ", sp[i]), xlab="q", ylab="centralization")
+}
+dev.off()
+
