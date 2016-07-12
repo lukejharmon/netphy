@@ -1,0 +1,3217 @@
+
+R version 3.2.3 (2015-12-10) -- "Wooden Christmas-Tree"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+This is vegan 2.3-3
+
+ # maps v3.1: updated 'world': all lakes moved to separate new #
+ # 'lakes' database. Type '?world' or 'news(package="maps")'.  #
+
+
+foreach: simple, scalable parallel programming from Revolution Analytics
+Use Revolution R for scalability, fault tolerance and more.
+http://www.revolutionanalytics.com
+During startup - Warning message:
+package 'ggplot2' was built under R version 3.2.4
+> > options(STERM='iESS', str.dendrogram.last="'", editor='emacsclient', show.error.locations=TRUE)
+> library(geiger)
+> library(devtools)
+
+Attaching package: 'devtools'
+
+The following object is masked from 'package:permute':
+
+    check
+
+Warning message:
+package 'devtools' was built under R version 3.2.5
+> install_github("lukejharmon/netphy")
+Skipping install for github remote, the SHA1 (c3f3910c) has not changed since last install.
+  Use `force = TRUE` to force installation
+> library(netphy)
+Error in library(netphy) : there is no package called 'netphy'
+> install_github("lukejharmon/netphy", force = TRUE)
+Downloading GitHub repo lukejharmon/netphy@master
+from URL https://api.github.com/repos/lukejharmon/netphy/zipball/master
+Installing np
+'/Library/Frameworks/R.framework/Resources/bin/R' --no-site-file --no-environ  \
+  --no-save --no-restore --quiet CMD INSTALL  \
+  '/private/var/folders/gd/h3kd1r9x6zx4qvz1bcf3st_c0000gn/T/RtmpalTQuE/devtools261368400cf8/lukejharmon-netphy-c3f3910'  \
+  --library='/Library/Frameworks/R.framework/Versions/3.2/Resources/library'  \
+  --install-tests
+
+* installing *source* package 'np' ...
+** R
+** preparing package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded
+* DONE (np)
+> library(netphy)
+Error in library(netphy) : there is no package called 'netphy'
+> ls()
+character(0)
+> search()
+ [1] ".GlobalEnv"          "package:devtools"    "ESSR"
+ [4] "package:diversitree" "package:gridExtra"   "package:ggplot2"
+ [7] "package:doMC"        "package:parallel"    "package:iterators"
+[10] "package:foreach"     "package:plyr"        "package:phytools"
+[13] "package:maps"        "package:picante"     "package:nlme"
+[16] "package:vegan"       "package:lattice"     "package:permute"
+[19] "package:TreeSim"     "package:laser"       "package:geiger"
+[22] "package:ape"         "package:stats"       "package:graphics"
+[25] "package:grDevices"   "package:utils"       "package:datasets"
+[28] "package:methods"     "Autoloads"           "package:base"
+> list.files("./R/")
+[1] "MatrixExp.eig.R"   "branchLike.R"      "fitPhyloNetwork.R"
+[4] "internals.R"       "logspace_add.R"    "logspace_sum.R"
+[7] "simPhyloNetwork.R"
+> lapply(as.list(list.files("./R/")), source)
+Error in file(filename, "r", encoding = encoding) :
+  cannot open the connection
+In addition: Warning message:
+In file(filename, "r", encoding = encoding) :
+  cannot open file 'MatrixExp.eig.R': No such file or directory
+> lapply(paste0("./R/",as.list(list.files("./R/"))), source)
+[[1]]
+[[1]]$value
+function (Q)
+{
+    tmp <- eigen(Q, symmetric = FALSE)
+    P1 <- tmp$vectors %*% diag(exp(tmp$values)) %*% solve(tmp$vectors)
+    return(P1)
+}
+
+[[1]]$visible
+[1] FALSE
+
+
+[[2]]
+[[2]]$value
+function (tip.like, bl, q)
+{
+    nb.states <- length(tip.like)
+    r <- rep(0, nb.states)
+    p <- MatrixExp.eig(q * bl)
+    for (i in 1:nb.states) r[i] <- logspace_sum(log(p[i, ]) +
+        tip.like)
+    return(r)
+}
+
+[[2]]$visible
+[1] FALSE
+
+
+[[3]]
+[[3]]$value
+function (phy, network, pars)
+{
+    if (sum(phy$edge.length == 0) > 0)
+        cat("Function probably will not work when tree has zero-length branches\n\n")
+    mm <- match(phy$tip.label, rownames(network))
+    network <- network[mm, mm]
+    nNodes <- max(phy$edge)
+    nTips <- length(phy$tip.label)
+    lik <- list()
+    q01 <- pars[1]
+    q10 <- pars[2]
+    pSpec <- pars[3]
+    if (pSpec > 1)
+        pSpec <- 1
+    qMatrix <- rbind(c(-q01, q01), c(q10, -q10))
+    for (i in 1:nTips) {
+        theTip <- phy$tip.label[i]
+        theRow <- which(rownames(network) == theTip)
+        interact <- network[theRow, ]
+        rr <- matrix(nrow = nTips, ncol = 2)
+        rownames(rr) <- phy$tip.label
+        colnames(rr) <- c(0, 1)
+        for (j in 1:nTips) if (interact[j] == 0)
+            rr[j, ] <- c(0, -Inf)
+        else rr[j, ] <- c(-Inf, 0)
+        lik[[i]] <- rr
+        names(lik)[i] <- theTip
+    }
+    currTree <- phy
+    cumlnL <- 0
+    while (1) {
+        bt <- branching.times(currTree)
+        recentNode <- names(bt)[which(bt == min(bt))][1]
+        daughter <- tips(currTree, as.numeric(recentNode))
+        timeInterval <- bt[recentNode]
+        d1 <- which(names(lik) == daughter[1])
+        d1L <- lik[[d1]]
+        d2 <- which(names(lik) == daughter[2])
+        d2L <- lik[[d2]]
+        dCon <- d1L[daughter[2], ]
+        dNode <- branchLike(dCon, timeInterval, qMatrix)
+        dd <- dNode + log(c(1 - pSpec, pSpec))
+        cumlnL <- cumlnL + -logspace_sum(dd)
+        if (length(currTree$tip.label) == 2)
+            break
+        currTree <- drop.tip(currTree, daughter[1])
+        oldLik <- lik
+        lik <- list()
+        nn <- length(currTree$tip.label)
+        for (i in 1:nn) {
+            theTip <- currTree$tip.label[i]
+            rr <- matrix(nrow = nn, ncol = 2)
+            rownames(rr) <- currTree$tip.label
+            colnames(rr) <- c(0, 1)
+            if (theTip %in% daughter) {
+                xx <- which(names(oldLik) == daughter[1])
+                ol1 <- oldLik[[xx]]
+                xx <- which(names(oldLik) == daughter[2])
+                ol2 <- oldLik[[xx]]
+                for (j in 1:nrow(ol1)) {
+                  if (rownames(ol1)[j] != daughter[1]) {
+                    l1 <- branchLike(ol1[j, ], timeInterval,
+                      qMatrix)
+                    l2 <- branchLike(ol2[j, ], timeInterval,
+                      qMatrix)
+                    rr[rownames(ol1)[j], ] <- l1 + l2
+                  }
+                }
+            }
+            else {
+                xx <- which(names(oldLik) == theTip)
+                theOldLik <- oldLik[[xx]]
+                lMerg <- theOldLik[daughter, ]
+                l1 <- branchLike(lMerg[1, ], timeInterval, qMatrix)
+                l2 <- branchLike(lMerg[2, ], timeInterval, qMatrix)
+                rr[daughter[2], ] <- l1 + l2
+                theRest <- rownames(rr)[which(!(rownames(rr) %in%
+                  daughter))]
+                for (tt in theRest) {
+                  lold <- theOldLik[tt, ]
+                  lnew <- branchLike(lold, timeInterval, qMatrix)
+                  rr[tt, ] <- lnew
+                }
+            }
+            rr[theTip, ] <- c(0, -Inf)
+            lik[[i]] <- rr
+            names(lik)[i] <- theTip
+            nEdge <- which(currTree$edge[, 2] == i)
+            currTree$edge.length[nEdge] <- currTree$edge.length[nEdge] -
+                timeInterval
+        }
+        if (length(lik) == 80)
+            break
+    }
+    return(cumlnL)
+}
+
+[[3]]$visible
+[1] FALSE
+
+
+[[4]]
+[[4]]$value
+function (tip.like, bl, q)
+{
+    nb.states <- length(tip.like)
+    r <- rep(0, nb.states)
+    p <- MatrixExp.eig(q * bl)
+    for (i in 1:nb.states) r[i] <- logspace_sum(log(p[i, ]) +
+        tip.like)
+    return(r)
+}
+
+[[4]]$visible
+[1] FALSE
+
+
+[[5]]
+[[5]]$value
+function (logx, logy)
+{
+    if (logx == -Inf)
+        return(logy)
+    else max(logx, logy) + log1p(exp(-abs(logx - logy)))
+}
+
+[[5]]$visible
+[1] FALSE
+
+
+[[6]]
+[[6]]$value
+function (logx)
+{
+    r <- logx[1]
+    if (length(logx) > 1)
+        for (i in 2:length(logx)) r <- logspace_add(r, logx[i])
+    r
+}
+
+[[6]]$visible
+[1] FALSE
+
+
+[[7]]
+[[7]]$value
+function (phy, qRate, sProb)
+{
+    bt <- sort(branching.times(phy), decr = T)
+    nb <- dim(phy$edge)[1]
+    interactionMatrix <- matrix(nrow = nb, ncol = nb)
+    interactionMatrix[] <- 0
+    currentEdges <- numeric()
+    rootNumber <- as.numeric(names(bt)[1])
+    qMatrix <- rbind(c(-1, 1), c(1, -1)) * qRate
+    for (i in 1:length(bt)) {
+        thisEdge <- as.numeric(names(bt)[i])
+        ancestorRow <- which(phy$edge[, 2] == thisEdge)
+        descendantRow <- which(phy$edge[, 1] == thisEdge)
+        if (length(ancestorRow) == 0) {
+            r <- runif(1)
+            if (r < sProb) {
+                interactionMatrix[descendantRow, descendantRow] <- 1
+                diag(interactionMatrix) <- 0
+            }
+            currentEdges <- c(currentEdges, descendantRow)
+        }
+        else {
+            timeSpan <- bt[i - 1] - bt[i]
+            tProb <- MatrixExp.eig(qMatrix * timeSpan)
+            cn <- length(currentEdges)
+            for (j in 1:(cn - 1)) for (k in (j + 1):cn) {
+                e1 <- currentEdges[j]
+                e2 <- currentEdges[k]
+                currState <- interactionMatrix[e1, e2]
+                p0 <- tProb[currState + 1, 1]
+                r <- runif(1)
+                if (r < p0) {
+                  interactionMatrix[e1, e2] <- 0
+                  interactionMatrix[e2, e1] <- 0
+                }
+                else {
+                  interactionMatrix[e1, e2] <- 1
+                  interactionMatrix[e2, e1] <- 1
+                }
+            }
+            toCut <- which(currentEdges == ancestorRow)
+            currentEdges <- currentEdges[-toCut]
+            currentEdges <- c(currentEdges, descendantRow)
+            for (j in 1:length(descendantRow)) {
+                interactionMatrix[, descendantRow[j]] <- interactionMatrix[,
+                  ancestorRow]
+                interactionMatrix[descendantRow[j], ] <- interactionMatrix[ancestorRow,
+                  ]
+                diag(interactionMatrix) <- 0
+            }
+            r <- runif(1)
+            if (r < sProb) {
+                interactionMatrix[descendantRow, descendantRow] <- 1
+            }
+        }
+    }
+    nTaxa <- length(phy$tip.label)
+    tips <- which(phy$edge[, 2] <= nTaxa)
+    oo <- phy$edge[tips, 2]
+    res <- interactionMatrix[tips, tips]
+    rownames(res) <- phy$tip.label[oo]
+    colnames(res) <- phy$tip.label[oo]
+    return(res)
+}
+
+[[7]]$visible
+[1] FALSE
+
+
+> ls()
+[1] "MatrixExp.eig"   "branchLike"      "fitPhyloNetwork" "logspace_add"
+[5] "logspace_sum"    "simPhyloNetwork"
+> tt<-sim.bdtree(b=1, d=0, stop="taxa", n = 60)
+> tt <- sim.bdtree(b = runif(1, spProb[1], spProb[2]), d = 0, stop = "taxa", n = round(runif(1, tProb[1], tProb[2])))
+Error in runif(1, tProb[1], tProb[2]) : object 'tProb' not found
+> sProb <- c(0,2)  # pSpec = probability of speciation within the network
+> qProb <- c(0,1)  # transition probability between interacting and not-interacting
+> tProb <- c(10,100)  # total number of taxa in the tree
+> spProb <- c(0,2)  # lambda for tree simulation
+> tt <- sim.bdtree(b = runif(1, spProb[1], spProb[2]), d = 0, stop = "taxa", n = round(runif(1, tProb[1], tProb[2])))
+> tt
+
+Phylogenetic tree with 36 tips and 35 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> pSpec <- runif(1, sProb[1], sProb[2])
+> q01 <- runif(1, qProb[1], qProb[2])
+> q10 <- runif(1, qProb[1], qProb[2])
+> lambda <- runif(1, spProb[1], spProb[2])
+> ntaxa <- round(runif(1, tProb[1], tProb[2]))
+> tt <- sim.bdtree(b = lambda, d = 0, stop = "taxa", n = ntaxa)
+> tt
+
+Phylogenetic tree with 71 tips and 70 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> net <- simPhyloNetwork(tt, qRate = q01, sProb = pSpec)
+> net
+    s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12 s13 s14 s15 s16 s17 s18 s19 s20 s21
+s1   0  0  0  0  0  0  0  0  0   1   1   0   0   0   0   1   1   1   0   0   0
+s2   0  0  1  1  0  1  1  1  1   1   1   1   1   1   1   1   1   1   1   1   1
+s3   0  1  1  1  1  1  1  1  1   1   1   1   1   0   0   0   1   1   1   1   1
+s4   0  1  1  1  1  1  1  1  1   1   1   1   1   0   0   0   1   1   1   1   1
+s5   0  0  1  1  0  1  1  1  1   1   1   1   1   1   1   1   1   1   1   1   1
+s6   0  1  1  1  1  0  0  0  0   0   0   0   0   0   0   0   0   0   1   1   1
+s7   0  1  1  1  1  0  0  0  0   0   0   0   0   0   0   0   0   0   1   1   1
+s8   0  1  1  1  1  0  0  0  0   0   0   0   0   0   0   0   1   1   1   1   1
+s9   0  1  1  1  1  0  0  0  0   0   0   1   1   0   0   0   0   0   0   0   0
+s10  1  1  1  1  1  0  0  0  0   0   0   0   0   1   1   1   1   1   1   0   1
+s11  1  1  1  1  1  0  0  0  0   0   0   0   0   1   1   1   1   0   1   1   1
+s12  0  1  1  1  1  0  0  0  1   0   0   0   0   1   1   1   1   1   1   1   1
+s13  0  1  1  1  1  0  0  0  1   0   0   0   0   1   1   1   1   1   1   1   1
+s14  0  1  0  0  1  0  0  0  0   1   1   1   1   0   0   1   1   1   1   1   1
+s15  0  1  0  0  1  0  0  0  0   1   1   1   1   0   0   1   1   1   1   1   1
+s16  1  1  0  0  1  0  0  0  0   1   1   1   1   1   1   0   1   1   1   1   1
+s17  1  1  1  1  1  0  0  1  0   1   1   1   1   1   1   1   0   1   1   1   1
+s18  1  1  1  1  1  0  0  1  0   1   0   1   1   1   1   1   1   0   1   1   1
+s19  0  1  1  1  1  1  1  1  0   1   1   1   1   1   1   1   1   1   0   1   1
+s20  0  1  1  1  1  1  1  1  0   0   1   1   1   1   1   1   1   1   1   0   1
+s21  0  1  1  1  1  1  1  1  0   1   1   1   1   1   1   1   1   1   1   1   0
+s22  0  0  1  1  1  0  0  1  0   1   1   1   1   1   1   1   1   1   1   0   0
+s23  0  0  1  1  1  0  0  1  1   1   1   1   1   1   0   1   1   1   1   0   0
+s24  0  1  1  1  1  0  0  1  1   1   0   1   1   1   1   1   1   1   1   1   1
+s25  0  1  1  1  1  0  0  1  1   1   1   1   1   1   1   1   1   1   1   1   1
+s26  0  1  1  1  1  0  0  1  1   1   0   1   1   1   1   1   1   1   1   0   0
+s27  0  1  1  1  1  0  0  1  1   1   1   1   1   1   1   1   1   1   0   1   1
+s28  0  1  1  1  1  0  0  1  1   1   1   0   0   1   1   1   1   1   1   1   1
+s29  0  0  0  0  1  0  0  1  0   0   0   0   0   1   1   1   1   1   1   1   1
+s30  0  0  0  0  1  0  0  1  0   1   1   1   1   1   1   1   1   0   1   1   1
+s31  0  1  1  1  0  1  1  1  1   1   1   1   1   0   1   0   1   0   1   1   1
+s32  1  1  1  1  0  1  1  1  1   1   0   1   1   1   1   0   1   0   1   1   1
+s33  0  0  1  1  0  1  1  0  0   1   1   1   1   1   1   1   0   0   0   1   1
+s34  0  0  1  1  0  1  1  0  0   1   1   1   1   1   1   1   0   0   0   0   1
+s35  0  0  0  0  1  1  1  0  0   1   1   1   1   0   0   1   1   1   1   1   1
+s36  0  0  0  0  1  1  1  0  0   1   1   1   1   0   0   1   1   1   1   1   1
+s37  0  0  0  0  1  1  1  0  0   1   1   1   1   0   0   1   1   1   0   1   1
+s38  0  0  0  0  1  1  1  0  0   1   1   1   1   1   1   1   1   1   1   1   1
+s39  0  0  0  0  1  1  1  0  0   1   1   1   1   1   1   1   1   1   1   1   1
+s40  1  0  0  0  0  0  0  0  0   1   1   1   1   1   1   1   0   1   1   1   1
+s41  1  0  0  0  0  0  0  0  0   1   1   1   1   1   1   1   1   1   1   1   1
+s42  1  0  0  0  0  0  0  0  0   1   1   1   1   1   1   1   1   1   1   0   1
+s43  0  0  0  0  0  0  0  0  1   1   1   1   1   1   1   1   1   1   1   1   1
+s44  0  0  0  0  0  0  0  0  1   1   1   1   1   1   1   1   1   1   1   1   1
+s45  0  0  0  0  0  1  1  1  0   0   0   0   0   1   1   1   1   1   1   1   1
+s46  0  0  0  0  1  1  1  1  1   0   0   0   0   1   1   1   1   0   1   1   1
+s47  0  0  0  0  1  1  1  1  1   0   0   0   0   1   1   1   1   0   1   1   1
+s48  0  0  0  0  1  1  1  1  1   1   1   0   0   1   1   1   1   1   0   1   1
+s49  0  0  0  0  0  0  0  0  0   0   0   0   0   0   0   0   0   0   0   0   0
+s50  0  0  0  0  1  1  1  0  1   0   0   0   0   0   0   0   0   0   0   0   0
+s51  0  0  0  0  1  1  1  0  1   0   0   0   0   0   0   0   0   0   0   0   0
+s52  0  0  0  0  1  0  0  1  0   0   0   0   0   0   0   1   1   0   1   1   1
+s53  0  0  0  0  0  0  0  0  0   0   1   1   1   1   1   1   0   0   0   0   0
+s54  0  0  0  0  0  0  0  0  0   0   1   1   1   1   1   1   0   0   1   0   0
+s55  0  0  0  0  0  0  0  0  0   0   1   1   0   1   1   1   0   0   0   0   0
+s56  0  0  0  0  0  0  0  0  0   0   1   1   1   1   1   1   0   0   0   0   0
+s57  1  0  0  0  0  0  0  0  0   0   0   0   0   0   0   1   1   0   0   0   0
+s58  0  0  0  0  0  0  0  0  0   0   0   0   0   0   0   1   0   0   0   0   0
+s59  0  0  0  0  1  0  0  0  0   0   0   0   0   0   0   1   0   0   0   0   0
+s60  1  1  1  1  0  0  0  0  0   0   0   0   0   0   0   0   0   0   0   0   0
+s61  0  0  1  1  0  1  1  0  0   1   1   1   1   0   0   1   0   0   0   0   0
+s62  0  1  1  1  0  0  0  0  0   0   0   0   0   0   0   0   0   0   1   0   0
+s63  1  1  1  1  0  0  0  1  1   1   0   1   1   0   0   1   1   1   0   1   1
+s64  0  1  1  1  1  0  1  1  1   1   1   1   1   1   1   1   0   1   0   0   0
+s65  1  1  1  1  1  0  0  1  1   0   0   0   0   1   1   0   1   0   1   1   1
+s66  1  1  0  0  1  1  1  1  1   0   1   1   1   1   1   0   1   1   1   1   1
+s67  1  0  1  1  1  1  1  1  0   1   1   1   1   1   1   1   1   0   0   1   1
+s68  0  0  1  1  1  1  1  0  1   1   1   1   1   1   1   1   0   0   1   1   1
+s69  0  1  1  1  0  0  0  1  1   1   1   1   1   1   1   1   0   1   1   1   1
+s70  1  0  0  0  0  0  0  0  0   0   0   0   0   0   0   0   0   0   0   0   0
+s71  0  0  0  0  0  0  0  0  0   0   0   0   0   0   0   1   1   0   0   0   0
+    s22 s23 s24 s25 s26 s27 s28 s29 s30 s31 s32 s33 s34 s35 s36 s37 s38 s39 s40
+s1    0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   1
+s2    0   0   1   1   1   1   1   0   0   1   1   0   0   0   0   0   0   0   0
+s3    1   1   1   1   1   1   1   0   0   1   1   1   1   0   0   0   0   0   0
+s4    1   1   1   1   1   1   1   0   0   1   1   1   1   0   0   0   0   0   0
+s5    1   1   1   1   1   1   1   1   1   0   0   0   0   1   1   1   1   1   0
+s6    0   0   0   0   0   0   0   0   0   1   1   1   1   1   1   1   1   1   0
+s7    0   0   0   0   0   0   0   0   0   1   1   1   1   1   1   1   1   1   0
+s8    1   1   1   1   1   1   1   1   1   1   1   0   0   0   0   0   0   0   0
+s9    0   1   1   1   1   1   1   0   0   1   1   0   0   0   0   0   0   0   0
+s10   1   1   1   1   1   1   1   0   1   1   1   1   1   1   1   1   1   1   1
+s11   1   1   0   1   0   1   1   0   1   1   0   1   1   1   1   1   1   1   1
+s12   1   1   1   1   1   1   0   0   1   1   1   1   1   1   1   1   1   1   1
+s13   1   1   1   1   1   1   0   0   1   1   1   1   1   1   1   1   1   1   1
+s14   1   1   1   1   1   1   1   1   1   0   1   1   1   0   0   0   1   1   1
+s15   1   0   1   1   1   1   1   1   1   1   1   1   1   0   0   0   1   1   1
+s16   1   1   1   1   1   1   1   1   1   0   0   1   1   1   1   1   1   1   1
+s17   1   1   1   1   1   1   1   1   1   1   1   0   0   1   1   1   1   1   0
+s18   1   1   1   1   1   1   1   1   0   0   0   0   0   1   1   1   1   1   1
+s19   1   1   1   1   1   0   1   1   1   1   1   0   0   1   1   0   1   1   1
+s20   0   0   1   1   0   1   1   1   1   1   1   1   0   1   1   1   1   1   1
+s21   0   0   1   1   0   1   1   1   1   1   1   1   1   1   1   1   1   1   1
+s22   0   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   0   1   1
+s23   1   0   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1
+s24   1   1   0   0   0   1   1   0   0   1   1   1   1   1   1   1   1   1   0
+s25   1   1   0   0   1   1   1   0   0   1   1   0   0   1   1   1   0   0   1
+s26   1   1   0   1   0   1   1   0   0   1   1   1   1   1   1   1   1   1   0
+s27   1   1   1   1   1   0   1   1   0   1   0   1   1   1   1   1   1   1   1
+s28   1   1   1   1   1   1   0   0   0   1   1   1   1   1   1   1   1   1   1
+s29   1   1   0   0   0   1   0   0   1   1   1   1   1   1   1   1   1   1   1
+s30   1   1   0   0   0   0   0   1   0   1   1   1   1   1   1   1   1   1   1
+s31   1   1   1   1   1   1   1   1   1   0   1   1   1   1   1   1   1   1   0
+s32   1   1   1   1   1   0   1   1   1   1   0   1   1   1   1   1   0   0   0
+s33   1   1   1   0   1   1   1   1   1   1   1   0   0   0   0   0   0   0   0
+s34   1   1   1   0   1   1   1   1   1   1   1   0   0   0   0   0   0   0   0
+s35   1   1   1   1   1   1   1   1   1   1   1   0   0   0   1   1   0   0   0
+s36   1   1   1   1   1   1   1   1   1   1   1   0   0   1   0   1   0   1   0
+s37   1   1   1   1   1   1   1   1   1   1   1   0   0   1   1   0   1   1   0
+s38   0   1   1   0   1   1   1   1   1   1   0   0   0   0   0   1   0   0   0
+s39   1   1   1   0   1   1   1   1   1   1   0   0   0   0   1   1   0   0   0
+s40   1   1   0   1   0   1   1   1   1   0   0   0   0   0   0   0   0   0   0
+s41   1   1   1   1   1   1   1   1   1   0   0   0   0   0   0   0   0   0   0
+s42   1   1   1   1   1   1   1   1   1   0   0   0   0   0   0   0   0   0   1
+s43   0   0   0   0   0   1   1   1   1   1   1   1   1   1   0   0   0   0   0
+s44   0   0   0   0   0   1   1   1   1   1   1   1   1   1   0   0   0   0   0
+s45   1   1   1   0   1   1   1   0   0   1   1   1   1   0   0   0   0   0   0
+s46   1   1   1   1   0   1   1   0   0   1   1   1   1   0   1   0   0   0   0
+s47   1   1   1   1   1   1   1   1   1   1   1   1   1   0   0   0   0   0   0
+s48   0   0   1   1   1   1   1   1   1   1   1   1   1   0   0   0   0   0   0
+s49   0   0   0   0   0   0   0   0   0   1   1   0   0   0   0   0   0   0   0
+s50   0   0   1   0   0   0   1   1   0   0   0   0   0   0   0   0   0   0   1
+s51   0   0   1   0   0   0   1   1   0   0   0   0   0   0   0   0   0   0   1
+s52   1   1   1   1   1   1   1   0   0   0   0   0   0   0   0   0   0   0   1
+s53   0   0   0   0   0   0   0   1   1   0   0   0   0   1   0   0   0   0   0
+s54   0   0   0   0   0   0   0   1   1   0   0   0   0   0   0   0   0   0   0
+s55   0   0   0   0   0   0   0   1   1   0   0   0   0   0   0   0   1   0   0
+s56   0   0   0   0   0   0   0   1   1   0   0   0   0   0   0   0   1   0   0
+s57   1   1   0   1   1   0   0   0   0   0   0   1   1   0   0   0   0   0   0
+s58   1   1   1   1   1   0   0   0   1   0   0   0   0   0   0   0   0   0   0
+s59   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0
+s60   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   1
+s61   0   1   0   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   1
+s62   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s63   0   0   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   0   1
+s64   0   0   1   1   1   1   1   1   0   1   1   1   1   1   1   1   0   0   1
+s65   1   1   0   0   0   1   1   0   1   0   0   0   0   1   1   1   1   1   1
+s66   1   1   1   1   1   1   1   1   1   0   0   1   1   1   1   1   1   1   1
+s67   1   1   1   1   1   1   1   1   1   0   0   0   0   0   0   0   1   1   1
+s68   1   0   1   1   1   0   1   1   1   1   1   1   1   0   0   0   0   0   1
+s69   1   1   1   1   1   1   1   1   0   1   1   0   0   0   0   0   0   0   1
+s70   0   0   0   0   0   0   0   0   0   0   0   1   1   1   1   1   1   1   0
+s71   0   0   0   0   0   0   0   0   1   1   1   1   1   1   1   0   1   1   1
+    s41 s42 s43 s44 s45 s46 s47 s48 s49 s50 s51 s52 s53 s54 s55 s56 s57 s58 s59
+s1    1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0
+s2    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s3    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s4    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s5    0   0   0   0   0   1   1   1   0   1   1   1   0   0   0   0   0   0   1
+s6    0   0   0   0   1   1   1   1   0   1   1   0   0   0   0   0   0   0   0
+s7    0   0   0   0   1   1   1   1   0   1   1   0   0   0   0   0   0   0   0
+s8    0   0   0   0   1   1   1   1   0   0   0   1   0   0   0   0   0   0   0
+s9    0   0   1   1   0   1   1   1   0   1   1   0   0   0   0   0   0   0   0
+s10   1   1   1   1   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0
+s11   1   1   1   1   0   0   0   1   0   0   0   0   1   1   1   1   0   0   0
+s12   1   1   1   1   0   0   0   0   0   0   0   0   1   1   1   1   0   0   0
+s13   1   1   1   1   0   0   0   0   0   0   0   0   1   1   0   1   0   0   0
+s14   1   1   1   1   1   1   1   1   0   0   0   0   1   1   1   1   0   0   0
+s15   1   1   1   1   1   1   1   1   0   0   0   0   1   1   1   1   0   0   0
+s16   1   1   1   1   1   1   1   1   0   0   0   1   1   1   1   1   1   1   1
+s17   1   1   1   1   1   1   1   1   0   0   0   1   0   0   0   0   1   0   0
+s18   1   1   1   1   1   0   0   1   0   0   0   0   0   0   0   0   0   0   0
+s19   1   1   1   1   1   1   1   0   0   0   0   1   0   1   0   0   0   0   0
+s20   1   0   1   1   1   1   1   1   0   0   0   1   0   0   0   0   0   0   0
+s21   1   1   1   1   1   1   1   1   0   0   0   1   0   0   0   0   0   0   0
+s22   1   1   0   0   1   1   1   0   0   0   0   1   0   0   0   0   1   1   0
+s23   1   1   0   0   1   1   1   0   0   0   0   1   0   0   0   0   1   1   0
+s24   1   1   0   0   1   1   1   1   0   1   1   1   0   0   0   0   0   1   0
+s25   1   1   0   0   0   1   1   1   0   0   0   1   0   0   0   0   1   1   0
+s26   1   1   0   0   1   0   1   1   0   0   0   1   0   0   0   0   1   1   0
+s27   1   1   1   1   1   1   1   1   0   0   0   1   0   0   0   0   0   0   0
+s28   1   1   1   1   1   1   1   1   0   1   1   1   0   0   0   0   0   0   0
+s29   1   1   1   1   0   0   1   1   0   1   1   0   1   1   1   1   0   0   0
+s30   1   1   1   1   0   0   1   1   0   0   0   0   1   1   1   1   0   1   0
+s31   0   0   1   1   1   1   1   1   1   0   0   0   0   0   0   0   0   0   1
+s32   0   0   1   1   1   1   1   1   1   0   0   0   0   0   0   0   0   0   0
+s33   0   0   1   1   1   1   1   1   0   0   0   0   0   0   0   0   1   0   0
+s34   0   0   1   1   1   1   1   1   0   0   0   0   0   0   0   0   1   0   0
+s35   0   0   1   1   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0
+s36   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0
+s37   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s38   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   1   0   0   0
+s39   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s40   0   1   0   0   0   0   0   0   0   1   1   1   0   0   0   0   0   0   0
+s41   0   1   0   0   0   0   0   0   1   1   1   1   0   0   0   0   0   0   0
+s42   1   0   0   0   0   0   0   0   0   1   1   1   0   0   0   0   0   0   0
+s43   0   0   0   1   0   0   0   0   0   0   0   1   0   0   0   0   1   1   0
+s44   0   0   1   0   0   0   0   0   0   0   0   1   0   0   0   0   1   1   0
+s45   0   0   0   0   0   0   1   1   0   0   0   0   0   0   0   0   0   0   0
+s46   0   0   0   0   0   0   1   1   0   0   0   0   0   0   0   0   0   0   0
+s47   0   0   0   0   1   1   0   1   0   0   0   0   0   0   0   0   0   0   0
+s48   0   0   0   0   1   1   1   0   0   0   0   0   0   1   0   0   0   0   0
+s49   1   0   0   0   0   0   0   0   0   0   0   1   1   0   0   0   0   0   0
+s50   1   1   0   0   0   0   0   0   0   0   1   0   1   1   1   1   1   1   1
+s51   1   1   0   0   0   0   0   0   0   1   0   0   1   1   1   1   1   1   1
+s52   1   1   1   1   0   0   0   0   1   0   0   0   1   1   1   1   1   0   1
+s53   0   0   0   0   0   0   0   0   1   1   1   1   0   0   1   1   1   1   1
+s54   0   0   0   0   0   0   0   1   0   1   1   1   0   0   1   1   1   1   1
+s55   0   0   0   0   0   0   0   0   0   1   1   1   1   1   0   1   1   1   1
+s56   0   0   0   0   0   0   0   0   0   1   1   1   1   1   1   0   1   1   1
+s57   0   0   1   1   0   0   0   0   0   1   1   1   1   1   1   1   0   1   1
+s58   0   0   1   1   0   0   0   0   0   1   1   0   1   1   1   1   1   0   0
+s59   0   0   0   0   0   0   0   0   0   1   1   1   1   1   1   1   1   0   0
+s60   0   1   0   0   0   0   0   0   0   0   0   1   1   1   1   1   0   0   0
+s61   1   1   1   1   0   1   1   0   1   1   1   1   1   1   1   1   0   0   0
+s62   0   0   0   0   1   1   1   1   0   0   0   0   0   1   1   1   1   1   1
+s63   0   0   1   1   1   1   1   0   1   1   1   1   0   0   0   0   1   1   1
+s64   1   1   0   0   1   1   1   1   1   1   1   0   1   1   1   1   1   1   1
+s65   1   1   1   1   1   1   1   1   1   1   1   0   1   1   1   1   0   0   0
+s66   1   1   0   0   1   1   0   1   1   1   1   1   1   1   1   1   0   0   0
+s67   1   1   1   1   1   1   1   1   1   0   0   1   1   1   1   1   1   1   1
+s68   1   0   1   1   1   1   1   1   1   1   1   1   1   1   1   0   1   1   1
+s69   1   1   1   1   0   0   1   0   0   1   1   1   1   1   1   1   1   1   1
+s70   0   0   0   0   0   0   0   0   0   1   1   1   1   1   1   1   1   1   1
+s71   1   1   1   1   0   0   0   0   1   1   1   1   1   1   1   1   1   1   1
+    s60 s61 s62 s63 s64 s65 s66 s67 s68 s69 s70 s71
+s1    1   0   0   1   0   1   1   1   0   0   1   0
+s2    1   0   1   1   1   1   1   0   0   1   0   0
+s3    1   1   1   1   1   1   0   1   1   1   0   0
+s4    1   1   1   1   1   1   0   1   1   1   0   0
+s5    0   0   0   0   1   1   1   1   1   0   0   0
+s6    0   1   0   0   0   0   1   1   1   0   0   0
+s7    0   1   0   0   1   0   1   1   1   0   0   0
+s8    0   0   0   1   1   1   1   1   0   1   0   0
+s9    0   0   0   1   1   1   1   0   1   1   0   0
+s10   0   1   0   1   1   0   0   1   1   1   0   0
+s11   0   1   0   0   1   0   1   1   1   1   0   0
+s12   0   1   0   1   1   0   1   1   1   1   0   0
+s13   0   1   0   1   1   0   1   1   1   1   0   0
+s14   0   0   0   0   1   1   1   1   1   1   0   0
+s15   0   0   0   0   1   1   1   1   1   1   0   0
+s16   0   1   0   1   1   0   0   1   1   1   0   1
+s17   0   0   0   1   0   1   1   1   0   0   0   1
+s18   0   0   0   1   1   0   1   0   0   1   0   0
+s19   0   0   1   0   0   1   1   0   1   1   0   0
+s20   0   0   0   1   0   1   1   1   1   1   0   0
+s21   0   0   0   1   0   1   1   1   1   1   0   0
+s22   0   0   0   0   0   1   1   1   1   1   0   0
+s23   0   1   0   0   0   1   1   1   0   1   0   0
+s24   0   0   0   1   1   0   1   1   1   1   0   0
+s25   0   1   0   1   1   0   1   1   1   1   0   0
+s26   0   1   0   1   1   0   1   1   1   1   0   0
+s27   1   0   0   1   1   1   1   1   0   1   0   0
+s28   0   0   0   1   1   1   1   1   1   1   0   0
+s29   0   0   0   1   1   0   1   1   1   1   0   0
+s30   0   0   0   1   0   1   1   1   1   0   0   1
+s31   0   0   0   1   1   0   0   0   1   1   0   1
+s32   0   0   0   1   1   0   0   0   1   1   0   1
+s33   0   0   0   1   1   0   1   0   1   0   1   1
+s34   0   0   0   1   1   0   1   0   1   0   1   1
+s35   0   0   0   1   1   1   1   0   0   0   1   1
+s36   0   0   0   1   1   1   1   0   0   0   1   1
+s37   0   0   0   1   1   1   1   0   0   0   1   0
+s38   0   0   0   1   0   1   1   1   0   0   1   1
+s39   0   0   0   0   0   1   1   1   0   0   1   1
+s40   1   1   0   1   1   1   1   1   1   1   0   1
+s41   0   1   0   0   1   1   1   1   1   1   0   1
+s42   1   1   0   0   1   1   1   1   0   1   0   1
+s43   0   1   0   1   0   1   0   1   1   1   0   1
+s44   0   1   0   1   0   1   0   1   1   1   0   1
+s45   0   0   1   1   1   1   1   1   1   0   0   0
+s46   0   1   1   1   1   1   1   1   1   0   0   0
+s47   0   1   1   1   1   1   0   1   1   1   0   0
+s48   0   0   1   0   1   1   1   1   1   0   0   0
+s49   0   1   0   1   1   1   1   1   1   0   0   1
+s50   0   1   0   1   1   1   1   0   1   1   1   1
+s51   0   1   0   1   1   1   1   0   1   1   1   1
+s52   1   1   0   1   0   0   1   1   1   1   1   1
+s53   1   1   0   0   1   1   1   1   1   1   1   1
+s54   1   1   1   0   1   1   1   1   1   1   1   1
+s55   1   1   1   0   1   1   1   1   1   1   1   1
+s56   1   1   1   0   1   1   1   1   0   1   1   1
+s57   0   0   1   1   1   0   0   1   1   1   1   1
+s58   0   0   1   1   1   0   0   1   1   1   1   1
+s59   0   0   1   1   1   0   0   1   1   1   1   1
+s60   0   0   1   1   1   1   1   1   1   1   1   1
+s61   0   0   0   1   1   1   1   0   1   1   0   1
+s62   1   0   0   1   0   1   1   0   0   0   1   1
+s63   1   1   1   0   0   1   1   1   1   1   1   1
+s64   1   1   0   0   0   1   1   1   1   1   1   1
+s65   1   1   1   1   1   0   1   0   1   0   1   1
+s66   1   1   1   1   1   1   0   1   1   0   1   0
+s67   1   0   0   1   1   0   1   0   1   1   1   1
+s68   1   1   0   1   1   1   1   1   0   0   1   1
+s69   1   1   0   1   1   0   0   1   0   0   1   1
+s70   1   0   1   1   1   1   1   1   1   1   0   1
+s71   1   1   1   1   1   1   0   1   1   1   1   0
+> foo <- function(tt, net, par) {
++     q01 <- exp(par[1])
++     q10 <- exp(par[2])
++     pSpec <- exp(par[3])
++     fitPhyloNetwork(tt, net, c(median(qProb), median(qProb), median(sProb)))
++ }
+> foo(log(c(q01, q10, pSpec)))
+Error in foo(log(c(q01, q10, pSpec))) (from #2) :
+  argument "par" is missing, with no default
+> foo(tt, net, log(c(q01, q10, pSpec)))
+[1] 849.7291
+> foo <- function(par) {
++     q01 <- exp(par[1])
++     q10 <- exp(par[2])
++     pSpec <- exp(par[3])
++     fitPhyloNetwork(tt, net, c(median(qProb), median(qProb), median(sProb)))
++ }
+> foo(log(c(q01, q10, pSpec)))
+[1] 849.7291
+> out <- optim(log(c(q01, q10, pSpec)), foo, control = list(trace = 6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 849.729100
+  Scaled convergence tolerance is 1.2662e-05
+Stepsize computed as 0.094909
+Exiting from Nelder Mead minimizer
+    4 function evaluations used
+> out
+$par
+[1] -0.9113506 -0.9490926 -0.4735361
+
+$value
+[1] 849.7291
+
+$counts
+function gradient
+       4       NA
+
+$convergence
+[1] 0
+
+$message
+NULL
+
+> pSpec <- runif(1, sProb[1], sProb[2])
+> q01 <- runif(1, qProb[1], qProb[2])
+> q10 <- runif(1, qProb[1], qProb[2])
+> lambda <- runif(1, spProb[1], spProb[2])
+> ntaxa <- round(runif(1, tProb[1], tProb[2]))
+> tt <- sim.bdtree(b = lambda, d = 0, stop = "taxa", n = ntaxa)
+> tt
+
+Phylogenetic tree with 54 tips and 53 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> net <- simPhyloNetwork(tt, qRate = q01, sProb = pSpec)
+> net
+    s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12 s13 s14 s15 s16 s17 s18 s19 s20 s21
+s1   1  1  1  1  1  0  1  1  0   0   1   1   0   0   0   0   1   1   0   0   1
+s2   1  1  1  1  1  0  1  1  0   0   1   1   0   0   0   0   1   1   0   0   1
+s3   1  1  0  1  1  0  1  1  1   1   1   0   0   1   0   1   1   0   1   0   1
+s4   1  1  1  0  1  0  0  0  1   1   1   1   1   1   0   1   1   0   1   1   1
+s5   1  1  1  1  0  1  1  1  1   1   0   1   1   0   1   1   1   0   0   0   1
+s6   0  0  0  0  1  0  1  1  1   1   1   1   1   1   1   1   1   0   0   0   1
+s7   1  1  1  0  1  1  0  1  0   0   0   1   0   0   0   1   0   1   0   1   0
+s8   1  1  1  0  1  1  1  0  0   0   0   1   0   0   0   1   0   1   0   1   0
+s9   0  0  1  1  1  1  0  0  0   1   1   1   1   0   0   1   1   0   1   0   1
+s10  0  0  1  1  1  1  0  0  1   0   1   1   1   0   0   1   1   0   1   0   1
+s11  1  1  1  1  0  1  0  0  1   1   0   1   1   0   0   0   0   1   1   1   1
+s12  1  1  0  1  1  1  1  1  1   1   1   0   1   0   1   1   1   0   0   1   1
+s13  0  0  0  1  1  1  0  0  1   1   1   1   0   0   1   1   1   1   0   1   0
+s14  0  0  1  1  0  1  0  0  0   0   0   0   0   0   0   1   1   0   0   0   0
+s15  0  0  0  0  1  1  0  0  0   0   0   1   1   0   0   0   0   0   1   1   1
+s16  0  0  1  1  1  1  1  1  1   1   0   1   1   1   0   0   0   1   1   1   1
+s17  1  1  1  1  1  1  0  0  1   1   0   1   1   1   0   0   0   1   1   1   1
+s18  1  1  0  0  0  0  1  1  0   0   1   0   1   0   0   1   1   0   1   1   1
+s19  0  0  1  1  0  0  0  0  1   1   1   0   0   0   1   1   1   1   0   1   0
+s20  0  0  0  1  0  0  1  1  0   0   1   1   1   0   1   1   1   1   1   0   0
+s21  1  1  1  1  1  1  0  0  1   1   1   1   0   0   1   1   1   1   0   0   0
+s22  0  0  1  1  0  1  1  1  1   1   0   1   0   0   1   1   1   0   0   0   1
+s23  1  1  1  1  1  0  1  1  1   1   0   1   1   0   1   0   1   1   0   0   1
+s24  1  1  1  1  1  1  1  1  1   1   0   1   1   0   1   1   0   1   1   0   0
+s25  0  0  1  1  1  1  1  1  1   1   0   1   0   0   1   0   0   0   0   0   1
+s26  1  1  1  0  1  1  0  0  0   1   0   0   1   1   1   1   1   0   1   1   1
+s27  0  0  1  0  0  0  1  1  1   1   1   1   0   1   1   1   1   0   0   0   0
+s28  0  0  1  0  0  1  0  0  1   1   0   1   0   0   0   0   0   0   0   0   1
+s29  0  0  1  1  0  0  0  0  1   1   0   0   0   1   0   0   1   1   0   0   0
+s30  0  0  0  0  0  1  0  0  1   1   0   1   0   0   0   1   0   0   0   1   1
+s31  0  0  0  0  0  0  1  0  1   1   0   1   0   0   1   0   0   0   1   0   1
+s32  0  0  0  0  1  1  0  0  0   0   1   1   0   0   1   0   0   0   1   1   0
+s33  0  0  1  0  1  0  1  1  0   1   0   1   0   0   1   0   0   0   1   1   0
+s34  1  1  1  1  1  1  0  0  0   0   0   1   1   1   0   1   1   0   1   1   1
+s35  1  1  0  1  1  1  1  1  1   1   0   1   1   0   0   0   1   1   1   0   0
+s36  1  1  1  0  1  1  1  1  1   0   0   0   0   1   1   1   0   1   0   1   0
+s37  0  0  0  1  0  1  0  0  1   1   0   0   1   0   1   1   1   0   0   0   1
+s38  1  1  0  0  0  0  1  1  1   1   0   0   1   1   1   1   1   1   0   0   0
+s39  1  1  1  1  1  0  0  0  0   0   0   0   0   0   1   1   1   1   0   0   0
+s40  1  1  1  0  1  1  0  0  0   0   1   0   1   0   0   1   1   1   0   0   1
+s41  0  0  1  1  0  0  1  1  1   1   0   1   1   0   0   0   0   1   0   0   1
+s42  0  0  0  0  0  0  1  0  1   1   1   1   1   1   1   1   1   1   1   1   0
+s43  1  1  1  1  0  0  1  1  1   1   1   1   1   1   0   0   1   0   0   0   0
+s44  1  1  1  1  0  0  1  1  1   1   1   0   0   1   0   1   1   1   0   0   1
+s45  0  0  0  0  1  1  1  1  0   0   1   0   0   0   0   1   1   0   0   0   0
+s46  1  1  1  1  1  0  1  1  1   0   1   0   0   0   0   1   1   1   0   0   0
+s47  1  1  1  1  1  0  0  0  1   1   0   1   0   1   0   1   1   0   0   0   0
+s48  1  1  0  1  0  1  0  0  1   1   0   1   0   0   0   1   0   0   0   0   0
+s49  0  0  1  1  0  1  0  1  1   1   0   1   0   0   0   1   1   0   0   1   1
+s50  1  1  0  0  0  0  1  1  1   1   0   0   0   1   1   1   0   1   1   0   1
+s51  1  1  1  0  1  1  0  0  1   1   1   0   0   1   1   1   1   1   1   1   0
+s52  1  1  1  0  0  1  0  0  1   0   1   1   1   1   0   1   1   1   1   1   0
+s53  0  0  0  0  1  1  0  0  0   1   0   0   0   1   0   1   0   1   1   1   1
+s54  0  0  1  0  1  1  0  0  0   0   0   0   0   0   0   1   0   1   0   1   1
+    s22 s23 s24 s25 s26 s27 s28 s29 s30 s31 s32 s33 s34 s35 s36 s37 s38 s39 s40
+s1    0   1   1   0   1   0   0   0   0   0   0   0   1   1   1   0   1   1   1
+s2    0   1   1   0   1   0   0   0   0   0   0   0   1   1   1   0   1   1   1
+s3    1   1   1   1   1   1   1   1   0   0   0   1   1   0   1   0   0   1   1
+s4    1   1   1   1   0   0   0   1   0   0   0   0   1   1   0   1   0   1   0
+s5    0   1   1   1   1   0   0   0   0   0   1   1   1   1   1   0   0   1   1
+s6    1   0   1   1   1   0   1   0   1   0   1   0   1   1   1   1   0   0   1
+s7    1   1   1   1   0   1   0   0   0   1   0   1   0   1   1   0   1   0   0
+s8    1   1   1   1   0   1   0   0   0   0   0   1   0   1   1   0   1   0   0
+s9    1   1   1   1   0   1   1   1   1   1   0   0   0   1   1   1   1   0   0
+s10   1   1   1   1   1   1   1   1   1   1   0   1   0   1   0   1   1   0   0
+s11   0   0   0   0   0   1   0   0   0   0   1   0   0   0   0   0   0   0   1
+s12   1   1   1   1   0   1   1   0   1   1   1   1   1   1   0   0   0   0   0
+s13   0   1   1   0   1   0   0   0   0   0   0   0   1   1   0   1   1   0   1
+s14   0   0   0   0   1   1   0   1   0   0   0   0   1   0   1   0   1   0   0
+s15   1   1   1   1   1   1   0   0   0   1   1   1   0   0   1   1   1   1   0
+s16   1   0   1   0   1   1   0   0   1   0   0   0   1   0   1   1   1   1   1
+s17   1   1   0   0   1   1   0   1   0   0   0   0   1   1   0   1   1   1   1
+s18   0   1   1   0   0   0   0   1   0   0   0   0   0   1   1   0   1   1   1
+s19   0   0   1   0   1   0   0   0   0   1   1   1   1   1   0   0   0   0   0
+s20   0   0   0   0   1   0   0   0   1   0   1   1   1   0   1   0   0   0   0
+s21   1   1   0   1   1   0   1   0   1   1   0   0   1   0   0   1   0   0   1
+s22   0   1   1   1   1   0   0   0   0   0   0   0   0   0   0   0   0   1   1
+s23   1   0   1   1   1   1   1   0   0   0   0   0   1   1   1   0   0   0   1
+s24   1   1   0   1   1   1   0   0   0   0   0   1   1   0   1   0   0   0   1
+s25   1   1   1   0   0   1   1   1   1   1   1   1   0   0   1   1   1   0   0
+s26   1   1   1   0   0   1   0   0   1   1   1   1   0   1   1   1   1   0   1
+s27   0   1   1   1   1   0   1   0   1   1   1   1   1   0   0   0   0   1   0
+s28   0   1   0   1   0   1   0   0   1   1   0   0   1   0   0   0   0   0   0
+s29   0   0   0   1   0   0   0   0   1   1   1   1   0   1   0   1   0   1   0
+s30   0   0   0   1   1   1   1   1   0   1   1   1   0   1   0   1   1   1   1
+s31   0   0   0   1   1   1   1   1   1   0   1   1   0   1   0   1   0   1   1
+s32   0   0   0   1   1   1   0   1   1   1   0   1   1   1   1   1   0   0   1
+s33   0   0   1   1   1   1   0   1   1   1   1   0   1   0   0   1   0   0   1
+s34   0   1   1   0   0   1   1   0   0   0   1   1   0   1   0   0   1   0   1
+s35   0   1   0   0   1   0   0   1   1   1   1   0   1   0   1   1   1   0   1
+s36   0   1   1   1   1   0   0   0   0   0   1   0   0   1   0   0   0   1   0
+s37   0   0   0   1   1   0   0   1   1   1   1   1   0   1   0   0   1   1   0
+s38   0   0   0   1   1   0   0   0   1   0   0   0   1   1   0   1   0   1   1
+s39   1   0   0   0   0   1   0   1   1   1   0   0   0   0   1   1   1   0   0
+s40   1   1   1   0   1   0   0   0   1   1   1   1   1   1   0   0   1   0   0
+s41   1   0   0   0   0   1   1   1   0   1   1   1   1   0   0   0   1   1   1
+s42   1   1   1   0   1   1   1   1   1   1   1   1   0   0   1   1   1   0   1
+s43   0   0   0   1   0   1   1   0   0   0   0   0   1   1   0   1   0   0   1
+s44   0   0   1   1   0   1   1   1   1   1   0   0   0   1   0   1   0   1   1
+s45   0   1   0   1   1   0   1   0   1   0   1   1   1   0   1   0   1   0   0
+s46   1   1   1   0   0   1   1   1   1   1   1   1   1   1   0   1   0   1   1
+s47   1   0   1   1   0   1   1   0   1   1   1   1   0   1   1   0   0   1   0
+s48   1   1   1   1   0   1   1   1   1   1   1   1   1   1   0   0   0   0   0
+s49   1   1   1   0   1   1   1   1   1   1   1   1   0   0   1   0   0   1   0
+s50   0   0   0   0   0   1   1   1   1   1   1   1   0   0   1   0   1   1   0
+s51   1   0   0   0   1   0   0   0   1   0   0   0   0   0   0   0   0   1   1
+s52   0   0   0   1   0   0   1   0   1   0   0   0   1   1   0   1   1   0   1
+s53   0   1   1   0   0   0   0   0   1   1   1   1   0   0   1   0   1   0   1
+s54   1   1   1   0   0   1   1   0   1   1   1   1   0   0   1   0   1   1   1
+    s41 s42 s43 s44 s45 s46 s47 s48 s49 s50 s51 s52 s53 s54
+s1    0   0   1   1   0   1   1   1   0   1   1   1   0   0
+s2    0   0   1   1   0   1   1   1   0   1   1   1   0   0
+s3    1   0   1   1   0   1   1   0   1   0   1   1   0   1
+s4    1   0   1   1   0   1   1   1   1   0   0   0   0   0
+s5    0   0   0   0   1   1   1   0   0   0   1   0   1   1
+s6    0   0   0   0   1   0   0   1   1   0   1   1   1   1
+s7    1   1   1   1   1   1   0   0   0   1   0   0   0   0
+s8    1   0   1   1   1   1   0   0   1   1   0   0   0   0
+s9    1   1   1   1   0   1   1   1   1   1   1   1   0   0
+s10   1   1   1   1   0   0   1   1   1   1   1   0   1   0
+s11   0   1   1   1   1   1   0   0   0   0   1   1   0   0
+s12   1   1   1   0   0   0   1   1   1   0   0   1   0   0
+s13   1   1   1   0   0   0   0   0   0   0   0   1   0   0
+s14   0   1   1   1   0   0   1   0   0   1   1   1   1   0
+s15   0   1   0   0   0   0   0   0   0   1   1   0   0   0
+s16   0   1   0   1   1   1   1   1   1   1   1   1   1   1
+s17   0   1   1   1   1   1   1   0   1   0   1   1   0   0
+s18   1   1   0   1   0   1   0   0   0   1   1   1   1   1
+s19   0   1   0   0   0   0   0   0   0   1   1   1   1   0
+s20   0   1   0   0   0   0   0   0   1   0   1   1   1   1
+s21   1   0   0   1   0   0   0   0   1   1   0   0   1   1
+s22   1   1   0   0   0   1   1   1   1   0   1   0   0   1
+s23   0   1   0   0   1   1   0   1   1   0   0   0   1   1
+s24   0   1   0   1   0   1   1   1   1   0   0   0   1   1
+s25   0   0   1   1   1   0   1   1   0   0   0   1   0   0
+s26   0   1   0   0   1   0   0   0   1   0   1   0   0   0
+s27   1   1   1   1   0   1   1   1   1   1   0   0   0   1
+s28   1   1   1   1   1   1   1   1   1   1   0   1   0   1
+s29   1   1   0   1   0   1   0   1   1   1   0   0   0   0
+s30   0   1   0   1   1   1   1   1   1   1   1   1   1   1
+s31   1   1   0   1   0   1   1   1   1   1   0   0   1   1
+s32   1   1   0   0   1   1   1   1   1   1   0   0   1   1
+s33   1   1   0   0   1   1   1   1   1   1   0   0   1   1
+s34   1   0   1   0   1   1   0   1   0   0   0   1   0   0
+s35   0   0   1   1   0   1   1   1   0   0   0   1   0   0
+s36   0   1   0   0   1   0   1   0   1   1   0   0   1   1
+s37   0   1   1   1   0   1   0   0   0   0   0   1   0   0
+s38   1   1   0   0   1   0   0   0   0   1   0   1   1   1
+s39   1   0   0   1   0   1   1   0   1   1   1   0   0   1
+s40   1   1   1   1   0   1   0   0   0   0   1   1   1   1
+s41   0   1   1   1   0   1   0   1   0   1   0   1   0   0
+s42   1   0   0   0   0   0   0   0   1   0   0   0   1   1
+s43   1   0   0   0   0   0   0   1   0   1   0   0   0   0
+s44   1   0   0   0   1   0   0   1   1   1   0   1   0   0
+s45   0   0   0   1   0   0   0   0   0   0   1   0   0   1
+s46   1   0   0   0   0   0   1   0   1   0   0   0   0   0
+s47   0   0   0   0   0   1   0   0   0   0   0   0   0   0
+s48   1   0   1   1   0   0   0   0   0   0   1   1   1   1
+s49   0   1   0   1   0   1   0   0   0   1   1   1   1   1
+s50   1   0   1   1   0   0   0   0   1   0   1   1   1   1
+s51   0   0   0   0   1   0   0   1   1   1   0   0   1   1
+s52   1   0   0   1   0   0   0   1   1   1   0   0   0   0
+s53   0   1   0   0   0   0   0   1   1   1   1   0   0   1
+s54   0   1   0   0   1   0   0   1   1   1   1   0   1   0
+> foo <- function(par) {
++     q01 <- exp(par[1])
++     q10 <- exp(par[2])
++     pSpec <- exp(par[3])
++     fitPhyloNetwork(tt, net, c(median(qProb), median(qProb), median(sProb)))
++ }
+> foo(log(c(q01, q10, pSpec)))
+[1] 845.4045
+> out <- optim(log(c(q01, q10, pSpec)), foo, control = list(trace = 6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 845.404499
+  Scaled convergence tolerance is 1.25975e-05
+Stepsize computed as 0.064294
+Exiting from Nelder Mead minimizer
+    4 function evaluations used
+> out
+$par
+[1] -0.6285747 -0.5659491  0.6429440
+
+$value
+[1] 845.4045
+
+$counts
+function gradient
+       4       NA
+
+$convergence
+[1] 0
+
+$message
+NULL
+
+> exp(out$par)
+[1] 0.5333514 0.5678210 1.9020724
+> par[1]
+Error in par[1] : object of type 'closure' is not subsettable
+> c(q01, q10, pSpec)
+[1] 0.5333514 0.5678210 1.9020724
+> pSpec
+[1] 1.902072
+> pSpec <- runif(1, sProb[1], sProb[2])
+> q01 <- runif(1, qProb[1], qProb[2])
+> q10 <- runif(1, qProb[1], qProb[2])
+> lambda <- runif(1, spProb[1], spProb[2])
+> ntaxa <- round(runif(1, tProb[1], tProb[2]))
+>
+>
+> tt <- sim.bdtree(b = lambda, d = 0, stop = "taxa", n = ntaxa)
+>
+> net <- simPhyloNetwork(tt, qRate = q01, sProb = pSpec)
+>
+>
+> foo <- function(par) {
++     q01 <- exp(par[1])
++     q10 <- exp(par[2])
++     pSpec <- exp(par[3])
++     fitPhyloNetwork(tt, net, c(median(qProb), median(qProb), median(sProb)))
++ }
+> foo(log(c(q01, q10, pSpec)))
+[1] 0.1769683
+> out <- optim(log(c(q01, q10, pSpec)), foo, control = list(trace = 6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 0.176968
+  Scaled convergence tolerance is 2.63703e-09
+Stepsize computed as 0.171318
+Exiting from Nelder Mead minimizer
+    4 function evaluations used
+> c(q01, q10, pSpec)
+[1] 0.1802915 0.7163171 1.3229361
+> exp(out$par)
+[1] 0.1802915 0.7163171 1.3229361
+> all.equal(c(q01, q10, pSpec), exp(out$par))
+[1] TRUE
+> ntaxa <- 4
+> tt <- sim.bdtree(b = lambda, d = 0, stop = "taxa", n = ntaxa)
+> tt
+
+Phylogenetic tree with 4 tips and 3 internal nodes.
+
+Tip labels:
+[1] "s1" "s2" "s3" "s4"
+
+Rooted; includes branch lengths.
+> net <- simPhyloNetwork(tt, qRate = q01, sProb = pSpec)
+> foo <- function(par) {
++     q01 <- exp(par[1])
++     q10 <- exp(par[2])
++     pSpec <- exp(par[3])
++     fitPhyloNetwork(tt, net, c(median(qProb), median(qProb), median(sProb)))
++ }
+> foo(log(c(q01, q10, pSpec)))
+[1] 1.865939
+> out <- optim(log(c(q01, q10, pSpec)), foo, control = list(trace = 6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 1.865939
+  Scaled convergence tolerance is 2.78047e-08
+Stepsize computed as 0.171318
+Exiting from Nelder Mead minimizer
+    4 function evaluations used
+> c(q01, q10, pSpec)
+[1] 0.1802915 0.7163171 1.3229361
+> exp(out$par)
+[1] 0.1802915 0.7163171 1.3229361
+> out <- optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 1.865939
+  Scaled convergence tolerance is 2.78047e-08
+Stepsize computed as 0.069315
+Exiting from Nelder Mead minimizer
+    4 function evaluations used
+> exp(out$par)
+[1] 0.5 0.5 0.5
+> out
+$par
+[1] -0.6931472 -0.6931472 -0.6931472
+
+$value
+[1] 1.865939
+
+$counts
+function gradient
+       4       NA
+
+$convergence
+[1] 0
+
+$message
+NULL
+
+> tt <- drop.tip(tt, "s4")
+> net <- simPhyloNetwork(tt, qRate = q01, sProb = pSpec)
+> foo <- function(par) {
++     q01 <- exp(par[1])
++     q10 <- exp(par[2])
++     pSpec <- exp(par[3])
++     fitPhyloNetwork(tt, net, c(median(qProb), median(qProb), median(sProb)))
++ }
+> foo(log(c(q01, q10, pSpec)))
+[1] 0.8429964
+> out <- optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 0.842996
+  Scaled convergence tolerance is 1.25616e-08
+Stepsize computed as 0.069315
+Exiting from Nelder Mead minimizer
+    4 function evaluations used
+> exp(out$par)
+[1] 0.5 0.5 0.5
+> lambda
+[1] 0.5847414
+> pSpec <- runif(1, sProb[1], sProb[2])
+> q01 <- runif(1, qProb[1], qProb[2])
+> q10 <- runif(1, qProb[1], qProb[2])
+> lambda <- runif(1, spProb[1], spProb[2])
+> ntaxa <- round(runif(1, tProb[1], tProb[2]))
+> tt <- sim.bdtree(b = lambda, d = 0, stop = "taxa", n = ntaxa)
+> tt <- drop.tip(tt, paste0("s", ntaxa))
+> tt
+
+Phylogenetic tree with 72 tips and 71 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> ntaxa
+[1] 73
+> net <- simPhyloNetwork(tt, qRate = q01, sProb = pSpec)
+> foo <- function(par) {
++     q01 <- exp(par[1])
++     q10 <- exp(par[2])
++     pSpec <- exp(par[3])
++     fitPhyloNetwork(tt, net, c(median(qProb), median(qProb), median(sProb)))
++ }
+> foo(log(c(q01, q10, pSpec)))
+[1] 713.0776
+> out <- optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 713.077632
+  Scaled convergence tolerance is 1.06257e-05
+Stepsize computed as 0.069315
+Exiting from Nelder Mead minimizer
+    4 function evaluations used
+> exp(out$par)
+[1] 0.5 0.5 0.5
+> fitPhyloNetwork(tt, net, c(median(qProb), median(qProb), median(sProb))
++ foo(log(c(0.1, 0.1, 0.5)))
+Error: unexpected symbol in:
+"fitPhyloNetwork(tt, net, c(median(qProb), median(qProb), median(sProb))
+foo"
+> out<-optim(log(c(0.5, 0.5, 0.5)), foo, control=list(trace=6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 713.077632
+  Scaled convergence tolerance is 1.06257e-05
+Stepsize computed as 0.069315
+Exiting from Nelder Mead minimizer
+    4 function evaluations used
+> exp(out$par)
+[1] 0.5 0.5 0.5
+> fitPhyloNetwork(tt, net, c(median(qProb), median(qProb), median(sProb)))
+[1] 713.0776
+> foo <- function(par) {
++     q01 <- exp(par[1])
++     q10 <- exp(par[2])
++     pSpec <- exp(par[3])
++     fitPhyloNetwork(tt, net, c(par[1], par[2], par[3]))
++ }
+> foo(log(c(q01, q10, pSpec)))
+Error in if (logx == -Inf) return(logy) else max(logx, logy) + log1p(exp(-abs(logx -  (from logspace_add.R#3) :
+  missing value where TRUE/FALSE needed
+In addition: Warning messages:
+1: In log(p[i, ]) : NaNs produced
+2: In log(p[i, ]) : NaNs produced
+> pSpec <- runif(1, sProb[1], sProb[2])
+> q01 <- runif(1, qProb[1], qProb[2])
+> q10 <- runif(1, qProb[1], qProb[2])
+> lambda <- runif(1, spProb[1], spProb[2])
+> ntaxa <- round(runif(1, tProb[1], tProb[2]))
+> tt <- sim.bdtree(b = lambda, d = 0, stop = "taxa", n = ntaxa)
+> tt <- drop.tip(tt, paste0("s", ntaxa))
+> net <- simPhyloNetwork(tt, qRate = q01, sProb = pSpec)
+> foo <- function(par) {
++     q01 <- exp(par[1])
++     q10 <- exp(par[2])
++     pSpec <- exp(par[3])
++     fitPhyloNetwork(tt, net, c(par[1], par[2], par[3]))
++ }
+> foo(log(c(q01, q10, pSpec)))
+Error in if (logx == -Inf) return(logy) else max(logx, logy) + log1p(exp(-abs(logx -  (from logspace_add.R#3) :
+  missing value where TRUE/FALSE needed
+In addition: Warning messages:
+1: In log(p[i, ]) : NaNs produced
+2: In log(p[i, ]) : NaNs produced
+> tt
+
+Phylogenetic tree with 97 tips and 96 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> ntaxa
+[1] 98
+> phy<-read.tree(text="(((a:1.0,b:1.0):2.0,(c:0.5,d:0.5):2.5):0.5,e:3.5);")
+> network<-rbind(c(0, 1, 0, 0, 1),
++                c(1, 0, 0, 0, 1),
++                c(0, 0, 0, 0, 0),
++                c(0, 0, 0, 0, 1),
++                c(1, 1, 0, 1, 0))
+> rownames(network)<-c("a","b","c","d","e")
+> colnames(network)<-c("a","b","c","d","e")
+> q01<-0.1
+> q10<-0.1
+> pSpec<-0.5
+> fitPhyloNetwork(phy, network, pars = c(q01, q10, pSpec))
+[1] 6.336294
+> foo<-function(x) {
++   q01<-exp(x[1])
++   q10<-exp(x[2])
++   pSpec<-exp(x[3])
++   fitPhyloNetwork(phy, network, c(q01, q10, pSpec))
++ }
+> foo(log(c(0.1, 0.1, 0.7)))
+[1] 6.599091
+> out<-optim(log(c(0.5, 0.5, 0.5)), foo, control=list(trace=6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 6.382582
+  Scaled convergence tolerance is 9.51079e-08
+Stepsize computed as 0.069315
+BUILD              4 6.419065 6.382582
+EXTENSION          6 6.405356 6.375414
+REFLECTION         8 6.389865 6.366040
+EXTENSION         10 6.382582 6.345222
+HI-REDUCTION      12 6.375414 6.345222
+EXTENSION         14 6.366040 6.320911
+EXTENSION         16 6.363070 6.289191
+EXTENSION         18 6.345222 6.256692
+EXTENSION         20 6.320911 6.186630
+EXTENSION         22 6.289191 6.143265
+LO-REDUCTION      24 6.256692 6.143265
+REFLECTION        26 6.186630 6.120582
+LO-REDUCTION      28 6.159200 6.120582
+LO-REDUCTION      30 6.143265 6.120582
+HI-REDUCTION      32 6.140743 6.120582
+EXTENSION         34 6.131710 6.112633
+LO-REDUCTION      36 6.129481 6.112633
+LO-REDUCTION      38 6.120582 6.112477
+HI-REDUCTION      40 6.114287 6.112477
+HI-REDUCTION      42 6.113982 6.112214
+HI-REDUCTION      44 6.112633 6.112214
+HI-REDUCTION      46 6.112477 6.111833
+HI-REDUCTION      48 6.112224 6.111833
+LO-REDUCTION      50 6.112214 6.111725
+HI-REDUCTION      52 6.111836 6.111725
+REFLECTION        54 6.111833 6.111677
+HI-REDUCTION      56 6.111775 6.111677
+HI-REDUCTION      58 6.111725 6.111677
+HI-REDUCTION      60 6.111690 6.111670
+HI-REDUCTION      62 6.111687 6.111665
+LO-REDUCTION      64 6.111677 6.111660
+HI-REDUCTION      66 6.111670 6.111659
+HI-REDUCTION      68 6.111665 6.111658
+REFLECTION        70 6.111660 6.111656
+REFLECTION        72 6.111659 6.111655
+LO-REDUCTION      74 6.111658 6.111654
+HI-REDUCTION      76 6.111656 6.111654
+HI-REDUCTION      78 6.111655 6.111653
+HI-REDUCTION      80 6.111654 6.111653
+LO-REDUCTION      82 6.111654 6.111653
+HI-REDUCTION      84 6.111654 6.111653
+LO-REDUCTION      86 6.111653 6.111653
+HI-REDUCTION      88 6.111653 6.111653
+Exiting from Nelder Mead minimizer
+    90 function evaluations used
+> exp(out$par)
+[1] 0.2580852 0.2193863 0.3479643
+> pSpec
+[1] 0.5
+> tt
+
+Phylogenetic tree with 97 tips and 96 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> phy<-read.tree(text="(((a:1.0,b:1.0):2.0,(c:0.5,d:0.5):2.5):0.5,e:3.5);")
+> tt<-sim.bdtree(b=1, d=0, stop="taxa", n = 60)
+> tt<-drop.tip(tt, "60")
+> tt
+
+Phylogenetic tree with 60 tips and 59 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> tt<-sim.bdtree(b=1, d=0, stop="taxa", n = 60)
+> tt
+
+Phylogenetic tree with 60 tips and 59 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> tt<-drop.tip(tt, "s60")
+> xx<-simPhyloNetwork(tt, qRate=0.1, sProb=0.5)
+> fitPhyloNetwork(tt, xx, c(0.1, 0.1, 0.5))
+[1] 302.1457
+> foo<-function(x) {
++   q01<-exp(x[1])
++   q10<-exp(x[2])
++   pSpec<-exp(x[3])
++   fitPhyloNetwork(tt, xx, c(0.1, 0.1, 0.5))
++ }
+> foo(log(c(0.1, 0.1, 0.5)))
+[1] 302.1457
+> out<-optim(log(c(0.5, 0.5, 0.5)), foo, control=list(trace=6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 302.145675
+  Scaled convergence tolerance is 4.50232e-06
+Stepsize computed as 0.069315
+Exiting from Nelder Mead minimizer
+    4 function evaluations used
+> exp(out$par)
+[1] 0.5 0.5 0.5
+> phy<-read.tree(text="(((a:1.0,b:1.0):2.0,(c:0.5,d:0.5):2.5):0.5,e:3.5);")
+> network<-rbind(c(0, 1, 0, 0, 1),
++                c(1, 0, 0, 0, 1),
++                c(0, 0, 0, 0, 0),
++                c(0, 0, 0, 0, 1),
++                c(1, 1, 0, 1, 0))
+> rownames(network)<-c("a","b","c","d","e")
+> colnames(network)<-c("a","b","c","d","e")
+>
+> q01<-0.1
+> q10<-0.1
+> pSpec<-0.5
+>
+> fitPhyloNetwork(phy, network, pars = c(q01, q10, pSpec))
+[1] 6.336294
+>
+> foo<-function(x) {
++   q01<-exp(x[1])
++   q10<-exp(x[2])
++   pSpec<-exp(x[3])
++   fitPhyloNetwork(phy, network, c(q01, q10, pSpec))
++ }
+>
+> foo(log(c(0.1, 0.1, 0.7)))
+[1] 6.599091
+>
+> out<-optim(log(c(0.5, 0.5, 0.5)), foo, control=list(trace=6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 6.382582
+  Scaled convergence tolerance is 9.51079e-08
+Stepsize computed as 0.069315
+BUILD              4 6.419065 6.382582
+EXTENSION          6 6.405356 6.375414
+REFLECTION         8 6.389865 6.366040
+EXTENSION         10 6.382582 6.345222
+HI-REDUCTION      12 6.375414 6.345222
+EXTENSION         14 6.366040 6.320911
+EXTENSION         16 6.363070 6.289191
+EXTENSION         18 6.345222 6.256692
+EXTENSION         20 6.320911 6.186630
+EXTENSION         22 6.289191 6.143265
+LO-REDUCTION      24 6.256692 6.143265
+REFLECTION        26 6.186630 6.120582
+LO-REDUCTION      28 6.159200 6.120582
+LO-REDUCTION      30 6.143265 6.120582
+HI-REDUCTION      32 6.140743 6.120582
+EXTENSION         34 6.131710 6.112633
+LO-REDUCTION      36 6.129481 6.112633
+LO-REDUCTION      38 6.120582 6.112477
+HI-REDUCTION      40 6.114287 6.112477
+HI-REDUCTION      42 6.113982 6.112214
+HI-REDUCTION      44 6.112633 6.112214
+HI-REDUCTION      46 6.112477 6.111833
+HI-REDUCTION      48 6.112224 6.111833
+LO-REDUCTION      50 6.112214 6.111725
+HI-REDUCTION      52 6.111836 6.111725
+REFLECTION        54 6.111833 6.111677
+HI-REDUCTION      56 6.111775 6.111677
+HI-REDUCTION      58 6.111725 6.111677
+HI-REDUCTION      60 6.111690 6.111670
+HI-REDUCTION      62 6.111687 6.111665
+LO-REDUCTION      64 6.111677 6.111660
+HI-REDUCTION      66 6.111670 6.111659
+HI-REDUCTION      68 6.111665 6.111658
+REFLECTION        70 6.111660 6.111656
+REFLECTION        72 6.111659 6.111655
+LO-REDUCTION      74 6.111658 6.111654
+HI-REDUCTION      76 6.111656 6.111654
+HI-REDUCTION      78 6.111655 6.111653
+HI-REDUCTION      80 6.111654 6.111653
+LO-REDUCTION      82 6.111654 6.111653
+HI-REDUCTION      84 6.111654 6.111653
+LO-REDUCTION      86 6.111653 6.111653
+HI-REDUCTION      88 6.111653 6.111653
+Exiting from Nelder Mead minimizer
+    90 function evaluations used
+> exp(out$par)
+[1] 0.2580852 0.2193863 0.3479643
+> tt<-sim.bdtree(b=1, d=0, stop="taxa", n = 60)
+> tt<-drop.tip(tt, "s60")
+> xx<-simPhyloNetwork(tt, qRate=0.1, sProb=0.5)
+> tt
+
+Phylogenetic tree with 59 tips and 58 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> xx
+    s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12 s13 s14 s15 s16 s17 s18 s19 s20 s21
+s1   0  1  0  0  0  0  0  0  0   0   1   1   1   1   1   1   1   1   1   1   1
+s2   1  0  0  0  0  0  0  0  0   0   0   0   1   1   0   0   1   1   0   1   1
+s3   0  0  0  1  1  0  0  0  0   0   1   1   1   1   0   0   1   1   1   1   1
+s4   0  0  1  0  1  0  0  0  0   0   1   0   1   1   0   0   1   1   1   1   1
+s5   0  0  1  1  0  0  0  0  0   0   1   1   1   1   0   0   1   1   1   1   1
+s6   0  0  0  0  0  0  0  0  1   1   1   1   1   1   1   1   1   0   1   1   1
+s7   0  0  0  0  0  0  0  0  1   1   1   1   1   1   1   1   1   0   1   1   1
+s8   0  0  0  0  0  0  0  0  1   1   1   1   1   1   1   1   1   1   1   1   1
+s9   0  0  0  0  0  1  1  1  0   1   1   1   1   1   1   1   1   1   1   1   1
+s10  0  0  0  0  0  1  1  1  1   0   1   1   0   1   1   1   0   0   1   1   1
+s11  1  0  1  1  1  1  1  1  1   1   0   1   0   0   0   0   0   0   0   0   0
+s12  1  0  1  0  1  1  1  1  1   1   1   0   0   0   0   0   0   0   0   0   0
+s13  1  1  1  1  1  1  1  1  1   0   0   0   0   1   0   0   0   0   0   0   0
+s14  1  1  1  1  1  1  1  1  1   1   0   0   1   0   1   1   0   0   0   0   0
+s15  1  0  0  0  0  1  1  1  1   1   0   0   0   1   0   1   1   1   0   1   0
+s16  1  0  0  0  0  1  1  1  1   1   0   0   0   1   1   0   1   1   0   0   0
+s17  1  1  1  1  1  1  1  1  1   0   0   0   0   0   1   1   0   0   0   0   0
+s18  1  1  1  1  1  0  0  1  1   0   0   0   0   0   1   1   0   0   0   0   0
+s19  1  0  1  1  1  1  1  1  1   1   0   0   0   0   0   0   0   0   0   0   0
+s20  1  1  1  1  1  1  1  1  1   1   0   0   0   0   1   0   0   0   0   0   1
+s21  1  1  1  1  1  1  1  1  1   1   0   0   0   0   0   0   0   0   0   1   0
+s22  1  1  1  1  1  1  1  1  1   1   0   0   0   0   0   0   0   0   0   1   1
+s23  1  1  1  1  1  0  0  1  1   1   0   0   0   0   1   1   0   1   0   0   1
+s24  1  1  1  1  1  1  1  1  1   1   0   0   0   0   0   0   0   0   0   0   0
+s25  1  1  1  1  1  1  1  1  1   1   0   0   0   0   0   0   0   0   0   0   0
+s26  1  1  1  1  1  1  1  1  1   1   0   0   0   0   0   0   0   0   0   0   0
+s27  1  0  1  1  1  1  1  1  1   1   0   0   0   0   0   0   0   0   0   0   0
+s28  1  1  1  1  1  1  1  1  1   1   0   0   0   0   0   0   0   0   0   0   0
+s29  1  1  1  1  1  1  1  0  1   1   0   0   0   0   0   0   0   0   0   0   0
+s30  1  1  1  1  1  1  1  1  1   1   0   0   0   0   0   0   0   0   0   0   0
+s31  1  1  1  1  1  1  1  1  1   1   0   0   0   0   0   0   0   0   0   0   0
+s32  0  0  0  0  0  0  0  0  1   1   0   0   0   0   1   0   0   0   0   0   0
+s33  0  0  0  0  0  1  1  1  1   1   0   0   0   0   0   0   0   0   1   1   1
+s34  0  0  0  0  0  0  0  0  1   0   0   0   0   0   1   1   0   0   1   1   1
+s35  0  0  0  0  0  0  0  0  1   0   0   0   0   0   1   1   0   0   1   1   1
+s36  0  0  0  0  0  0  0  0  1   0   0   0   0   0   1   1   0   0   1   1   1
+s37  0  0  0  0  0  0  0  0  0   0   0   0   0   0   1   1   0   0   1   1   1
+s38  0  0  0  0  0  0  0  0  0   1   0   0   0   0   1   1   0   0   1   1   1
+s39  0  0  1  0  0  0  0  0  0   1   0   0   0   0   1   1   0   0   1   1   1
+s40  1  0  0  0  0  0  0  0  0   1   0   0   0   0   1   0   0   0   1   1   1
+s41  1  0  0  0  0  0  0  0  0   1   0   0   0   0   1   0   0   0   1   1   1
+s42  1  0  0  0  0  0  0  0  0   0   0   0   0   0   1   1   0   0   1   1   1
+s43  0  1  0  0  0  0  0  0  0   0   1   1   0   0   0   0   0   0   1   1   1
+s44  0  0  0  0  0  0  0  0  0   0   1   1   0   1   0   0   0   0   1   1   1
+s45  1  1  1  1  1  1  1  1  1   1   0   0   0   1   0   0   1   1   0   0   0
+s46  1  1  1  1  1  1  1  1  1   1   0   0   1   0   0   0   1   1   0   0   0
+s47  1  1  1  1  1  1  1  1  1   1   0   0   0   0   0   0   1   1   0   0   0
+s48  1  1  1  1  1  1  1  1  1   1   0   0   0   0   0   0   1   1   0   0   0
+s49  1  1  1  1  1  1  1  1  1   1   0   0   0   0   0   0   1   1   0   0   0
+s50  1  1  1  1  1  1  1  1  1   1   0   0   0   0   0   0   1   1   0   0   0
+s51  1  1  1  1  1  1  1  1  1   1   0   0   0   0   0   0   1   1   0   0   0
+s52  1  1  1  1  1  1  1  1  1   1   0   0   0   0   0   0   1   1   0   0   0
+s53  1  0  0  0  0  0  0  0  1   0   0   0   0   0   0   0   0   0   1   0   0
+s54  0  0  0  0  0  0  0  0  0   0   0   0   0   1   0   0   0   0   0   0   0
+s55  0  0  0  0  0  0  0  0  0   0   0   0   0   0   0   0   0   0   0   0   0
+s56  0  0  0  0  0  0  0  0  0   0   1   1   0   0   0   0   0   0   0   0   0
+s57  1  1  1  1  1  0  0  0  0   0   1   1   1   1   0   0   0   0   0   0   0
+s58  1  1  1  1  1  0  0  0  0   0   1   1   0   0   0   0   0   0   0   0   0
+s59  0  0  0  0  0  0  0  0  0   0   0   0   1   0   0   1   1   1   0   0   0
+    s22 s23 s24 s25 s26 s27 s28 s29 s30 s31 s32 s33 s34 s35 s36 s37 s38 s39 s40
+s1    1   1   1   1   1   1   1   1   1   1   0   0   0   0   0   0   0   0   1
+s2    1   1   1   1   1   0   1   1   1   1   0   0   0   0   0   0   0   0   0
+s3    1   1   1   1   1   1   1   1   1   1   0   0   0   0   0   0   0   1   0
+s4    1   1   1   1   1   1   1   1   1   1   0   0   0   0   0   0   0   0   0
+s5    1   1   1   1   1   1   1   1   1   1   0   0   0   0   0   0   0   0   0
+s6    1   0   1   1   1   1   1   1   1   1   0   1   0   0   0   0   0   0   0
+s7    1   0   1   1   1   1   1   1   1   1   0   1   0   0   0   0   0   0   0
+s8    1   1   1   1   1   1   1   0   1   1   0   1   0   0   0   0   0   0   0
+s9    1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   0   0   0   0
+s10   1   1   1   1   1   1   1   1   1   1   1   1   0   0   0   0   1   1   1
+s11   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s12   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s13   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s14   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s15   0   1   0   0   0   0   0   0   0   0   1   0   1   1   1   1   1   1   1
+s16   0   1   0   0   0   0   0   0   0   0   0   0   1   1   1   1   1   1   0
+s17   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s18   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s19   0   0   0   0   0   0   0   0   0   0   0   1   1   1   1   1   1   1   1
+s20   1   0   0   0   0   0   0   0   0   0   0   1   1   1   1   1   1   1   1
+s21   1   1   0   0   0   0   0   0   0   0   0   1   1   1   1   1   1   1   1
+s22   0   1   0   0   0   0   0   0   0   0   0   1   1   1   1   1   1   1   1
+s23   1   0   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1
+s24   0   1   0   1   1   0   0   1   1   1   1   1   1   1   1   1   1   1   1
+s25   0   1   1   0   1   0   0   1   1   1   1   1   1   1   1   1   1   1   1
+s26   0   1   1   1   0   0   0   1   1   1   1   1   1   1   1   1   1   1   1
+s27   0   1   0   0   0   0   1   0   0   0   1   1   1   1   1   1   1   1   1
+s28   0   1   0   0   0   1   0   0   0   0   1   1   1   1   1   1   1   1   1
+s29   0   1   1   1   1   0   0   0   1   1   1   1   1   1   1   1   1   1   1
+s30   0   1   1   1   1   0   0   1   0   1   1   1   1   1   1   1   1   1   1
+s31   0   1   1   1   1   0   0   1   1   0   1   1   1   1   1   1   1   1   1
+s32   0   1   1   1   1   1   1   1   1   1   0   1   1   1   1   1   1   1   1
+s33   1   1   1   1   1   1   1   1   1   1   1   0   1   1   1   1   1   1   1
+s34   1   1   1   1   1   1   1   1   1   1   1   1   0   1   0   0   1   1   1
+s35   1   1   1   1   1   1   1   1   1   1   1   1   1   0   0   0   1   1   1
+s36   1   1   1   1   1   1   1   1   1   1   1   1   0   0   0   0   1   1   1
+s37   1   1   1   1   1   1   1   1   1   1   1   1   0   0   0   0   0   0   0
+s38   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   0   0   1   1
+s39   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   0   1   0   0
+s40   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   0   1   0   0
+s41   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   0   1   0   1
+s42   1   1   1   1   1   1   1   1   1   1   1   1   0   0   0   0   1   1   1
+s43   1   1   1   1   1   1   1   1   1   1   0   1   1   1   1   1   1   1   1
+s44   1   1   1   1   0   1   1   1   1   1   1   1   1   1   1   1   1   1   1
+s45   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   1   0   0
+s46   0   0   0   0   0   1   1   0   0   0   0   0   0   0   0   0   0   0   0
+s47   0   0   0   0   0   1   1   0   0   0   0   0   0   0   0   0   0   0   0
+s48   0   0   0   0   0   1   0   1   0   0   0   0   0   0   0   0   0   0   0
+s49   0   0   0   0   0   1   1   0   0   0   0   0   0   0   0   0   0   0   0
+s50   0   0   0   0   0   1   1   0   0   0   0   0   0   0   0   0   0   0   0
+s51   0   0   0   0   0   1   1   0   0   0   0   0   0   0   0   0   0   0   0
+s52   0   0   0   0   0   1   1   0   0   0   0   0   0   0   0   0   0   0   0
+s53   0   0   1   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s54   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s55   0   0   0   0   0   1   1   0   0   0   0   0   0   0   0   0   0   0   0
+s56   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0
+s57   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s58   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s59   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+    s41 s42 s43 s44 s45 s46 s47 s48 s49 s50 s51 s52 s53 s54 s55 s56 s57 s58 s59
+s1    1   1   0   0   1   1   1   1   1   1   1   1   1   0   0   0   1   1   0
+s2    0   0   1   0   1   1   1   1   1   1   1   1   0   0   0   0   1   1   0
+s3    0   0   0   0   1   1   1   1   1   1   1   1   0   0   0   0   1   1   0
+s4    0   0   0   0   1   1   1   1   1   1   1   1   0   0   0   0   1   1   0
+s5    0   0   0   0   1   1   1   1   1   1   1   1   0   0   0   0   1   1   0
+s6    0   0   0   0   1   1   1   1   1   1   1   1   0   0   0   0   0   0   0
+s7    0   0   0   0   1   1   1   1   1   1   1   1   0   0   0   0   0   0   0
+s8    0   0   0   0   1   1   1   1   1   1   1   1   0   0   0   0   0   0   0
+s9    0   0   0   0   1   1   1   1   1   1   1   1   1   0   0   0   0   0   0
+s10   1   0   0   0   1   1   1   1   1   1   1   1   0   0   0   0   0   0   0
+s11   0   0   1   1   0   0   0   0   0   0   0   0   0   0   0   1   1   1   0
+s12   0   0   1   1   0   0   0   0   0   0   0   0   0   0   0   1   1   1   0
+s13   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   1   0   1
+s14   0   0   0   1   1   0   0   0   0   0   0   0   0   1   0   0   1   0   0
+s15   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s16   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1
+s17   0   0   0   0   1   1   1   1   1   1   1   1   0   0   0   0   0   0   1
+s18   0   0   0   0   1   1   1   1   1   1   1   1   0   0   0   0   0   0   1
+s19   1   1   1   1   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0
+s20   1   1   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s21   1   1   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s22   1   1   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s23   1   1   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s24   1   1   1   1   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0
+s25   1   1   1   1   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0
+s26   1   1   1   0   0   0   0   0   0   0   0   0   1   0   0   0   0   1   0
+s27   1   1   1   1   1   1   1   1   1   1   1   1   0   0   1   1   0   0   0
+s28   1   1   1   1   0   1   1   0   1   1   1   1   0   0   1   0   0   0   0
+s29   1   1   1   1   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0
+s30   1   1   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s31   1   1   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s32   1   1   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s33   1   1   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s34   1   0   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s35   1   0   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s36   1   0   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s37   0   0   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s38   1   1   1   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s39   0   1   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s40   1   1   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s41   0   1   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s42   1   0   1   1   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0
+s43   1   1   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s44   1   1   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+s45   0   0   0   0   0   1   1   1   1   1   1   1   0   1   1   0   1   0   0
+s46   0   0   0   0   1   0   1   1   1   1   1   1   0   0   1   0   0   0   0
+s47   0   0   0   0   1   1   0   1   0   0   0   0   0   1   1   0   0   0   0
+s48   0   0   0   0   1   1   1   0   0   0   0   0   0   1   1   0   0   0   0
+s49   0   0   0   0   1   1   0   0   0   1   1   0   0   1   1   0   1   0   0
+s50   0   0   0   0   1   1   0   0   1   0   1   0   0   1   1   0   1   0   0
+s51   0   0   0   0   1   1   0   0   1   1   0   0   0   1   1   0   0   0   0
+s52   0   0   0   0   1   1   0   0   0   0   0   0   0   1   1   0   0   0   0
+s53   0   0   0   0   0   0   0   0   0   0   0   0   0   1   1   0   0   0   0
+s54   0   1   0   0   1   0   1   1   1   1   1   1   1   0   1   0   0   0   0
+s55   0   0   0   0   1   1   1   1   1   1   1   1   1   1   0   0   0   0   0
+s56   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   1   1
+s57   0   0   0   0   1   0   0   0   1   1   0   0   0   0   0   1   0   1   0
+s58   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   1   0   0
+s59   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0
+> fitPhyloNetwork(tt, xx, c(0.1, 0.1, 0.5))
+[1] 327.6095
+> fitPhyloNetwork(tt, xx, c(0.1, 0.1, 0.7))
+[1] 325.8817
+> foo<-function(x) {
++   q01<-exp(x[1])
++   q10<-exp(x[2])
++   pSpec<-exp(x[3])
++   fitPhyloNetwork(tt, xx, c(0.1, 0.1, 0.5))
++ }
+> foo(log(c(0.1, 0.1, 0.5)))
+[1] 327.6095
+> out<-optim(log(c(0.5, 0.5, 0.5)), foo, control=list(trace=6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 327.609484
+  Scaled convergence tolerance is 4.88176e-06
+Stepsize computed as 0.069315
+Exiting from Nelder Mead minimizer
+    4 function evaluations used
+> exp(out$par)
+[1] 0.5 0.5 0.5
+> out<-optim(log(c(0.1, 0.1, 0.5)), foo, control=list(trace=6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 327.609484
+  Scaled convergence tolerance is 4.88176e-06
+Stepsize computed as 0.230259
+Exiting from Nelder Mead minimizer
+    4 function evaluations used
+> exp(out$par)
+[1] 0.1 0.1 0.5
+> rm(list = ls())
+> tt<-sim.bdtree(b=1, d=0, stop="taxa", n = 60)
+> tt
+
+Phylogenetic tree with 60 tips and 59 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> tt<-drop.tip(tt, "60")
+> tt
+
+Phylogenetic tree with 60 tips and 59 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> xx<-simPhyloNetwork(tt, qRate=0.1, sProb=0.5)
+Error: could not find function "simPhyloNetwork"
+> lapply(paste0("./R/",as.list(list.files("./R/"))), source)
+[[1]]
+[[1]]$value
+function (Q)
+{
+    tmp <- eigen(Q, symmetric = FALSE)
+    P1 <- tmp$vectors %*% diag(exp(tmp$values)) %*% solve(tmp$vectors)
+    return(P1)
+}
+
+[[1]]$visible
+[1] FALSE
+
+
+[[2]]
+[[2]]$value
+function (tip.like, bl, q)
+{
+    nb.states <- length(tip.like)
+    r <- rep(0, nb.states)
+    p <- MatrixExp.eig(q * bl)
+    for (i in 1:nb.states) r[i] <- logspace_sum(log(p[i, ]) +
+        tip.like)
+    return(r)
+}
+
+[[2]]$visible
+[1] FALSE
+
+
+[[3]]
+[[3]]$value
+function (phy, network, pars)
+{
+    if (sum(phy$edge.length == 0) > 0)
+        cat("Function probably will not work when tree has zero-length branches\n\n")
+    mm <- match(phy$tip.label, rownames(network))
+    network <- network[mm, mm]
+    nNodes <- max(phy$edge)
+    nTips <- length(phy$tip.label)
+    lik <- list()
+    q01 <- pars[1]
+    q10 <- pars[2]
+    pSpec <- pars[3]
+    if (pSpec > 1)
+        pSpec <- 1
+    qMatrix <- rbind(c(-q01, q01), c(q10, -q10))
+    for (i in 1:nTips) {
+        theTip <- phy$tip.label[i]
+        theRow <- which(rownames(network) == theTip)
+        interact <- network[theRow, ]
+        rr <- matrix(nrow = nTips, ncol = 2)
+        rownames(rr) <- phy$tip.label
+        colnames(rr) <- c(0, 1)
+        for (j in 1:nTips) if (interact[j] == 0)
+            rr[j, ] <- c(0, -Inf)
+        else rr[j, ] <- c(-Inf, 0)
+        lik[[i]] <- rr
+        names(lik)[i] <- theTip
+    }
+    currTree <- phy
+    cumlnL <- 0
+    while (1) {
+        bt <- branching.times(currTree)
+        recentNode <- names(bt)[which(bt == min(bt))][1]
+        daughter <- tips(currTree, as.numeric(recentNode))
+        timeInterval <- bt[recentNode]
+        d1 <- which(names(lik) == daughter[1])
+        d1L <- lik[[d1]]
+        d2 <- which(names(lik) == daughter[2])
+        d2L <- lik[[d2]]
+        dCon <- d1L[daughter[2], ]
+        dNode <- branchLike(dCon, timeInterval, qMatrix)
+        dd <- dNode + log(c(1 - pSpec, pSpec))
+        cumlnL <- cumlnL + -logspace_sum(dd)
+        if (length(currTree$tip.label) == 2)
+            break
+        currTree <- drop.tip(currTree, daughter[1])
+        oldLik <- lik
+        lik <- list()
+        nn <- length(currTree$tip.label)
+        for (i in 1:nn) {
+            theTip <- currTree$tip.label[i]
+            rr <- matrix(nrow = nn, ncol = 2)
+            rownames(rr) <- currTree$tip.label
+            colnames(rr) <- c(0, 1)
+            if (theTip %in% daughter) {
+                xx <- which(names(oldLik) == daughter[1])
+                ol1 <- oldLik[[xx]]
+                xx <- which(names(oldLik) == daughter[2])
+                ol2 <- oldLik[[xx]]
+                for (j in 1:nrow(ol1)) {
+                  if (rownames(ol1)[j] != daughter[1]) {
+                    l1 <- branchLike(ol1[j, ], timeInterval,
+                      qMatrix)
+                    l2 <- branchLike(ol2[j, ], timeInterval,
+                      qMatrix)
+                    rr[rownames(ol1)[j], ] <- l1 + l2
+                  }
+                }
+            }
+            else {
+                xx <- which(names(oldLik) == theTip)
+                theOldLik <- oldLik[[xx]]
+                lMerg <- theOldLik[daughter, ]
+                l1 <- branchLike(lMerg[1, ], timeInterval, qMatrix)
+                l2 <- branchLike(lMerg[2, ], timeInterval, qMatrix)
+                rr[daughter[2], ] <- l1 + l2
+                theRest <- rownames(rr)[which(!(rownames(rr) %in%
+                  daughter))]
+                for (tt in theRest) {
+                  lold <- theOldLik[tt, ]
+                  lnew <- branchLike(lold, timeInterval, qMatrix)
+                  rr[tt, ] <- lnew
+                }
+            }
+            rr[theTip, ] <- c(0, -Inf)
+            lik[[i]] <- rr
+            names(lik)[i] <- theTip
+            nEdge <- which(currTree$edge[, 2] == i)
+            currTree$edge.length[nEdge] <- currTree$edge.length[nEdge] -
+                timeInterval
+        }
+        if (length(lik) == 80)
+            break
+    }
+    return(cumlnL)
+}
+
+[[3]]$visible
+[1] FALSE
+
+
+[[4]]
+[[4]]$value
+function (tip.like, bl, q)
+{
+    nb.states <- length(tip.like)
+    r <- rep(0, nb.states)
+    p <- MatrixExp.eig(q * bl)
+    for (i in 1:nb.states) r[i] <- logspace_sum(log(p[i, ]) +
+        tip.like)
+    return(r)
+}
+
+[[4]]$visible
+[1] FALSE
+
+
+[[5]]
+[[5]]$value
+function (logx, logy)
+{
+    if (logx == -Inf)
+        return(logy)
+    else max(logx, logy) + log1p(exp(-abs(logx - logy)))
+}
+
+[[5]]$visible
+[1] FALSE
+
+
+[[6]]
+[[6]]$value
+function (logx)
+{
+    r <- logx[1]
+    if (length(logx) > 1)
+        for (i in 2:length(logx)) r <- logspace_add(r, logx[i])
+    r
+}
+
+[[6]]$visible
+[1] FALSE
+
+
+[[7]]
+[[7]]$value
+function (phy, qRate, sProb)
+{
+    bt <- sort(branching.times(phy), decr = T)
+    nb <- dim(phy$edge)[1]
+    interactionMatrix <- matrix(nrow = nb, ncol = nb)
+    interactionMatrix[] <- 0
+    currentEdges <- numeric()
+    rootNumber <- as.numeric(names(bt)[1])
+    qMatrix <- rbind(c(-1, 1), c(1, -1)) * qRate
+    for (i in 1:length(bt)) {
+        thisEdge <- as.numeric(names(bt)[i])
+        ancestorRow <- which(phy$edge[, 2] == thisEdge)
+        descendantRow <- which(phy$edge[, 1] == thisEdge)
+        if (length(ancestorRow) == 0) {
+            r <- runif(1)
+            if (r < sProb) {
+                interactionMatrix[descendantRow, descendantRow] <- 1
+                diag(interactionMatrix) <- 0
+            }
+            currentEdges <- c(currentEdges, descendantRow)
+        }
+        else {
+            timeSpan <- bt[i - 1] - bt[i]
+            tProb <- MatrixExp.eig(qMatrix * timeSpan)
+            cn <- length(currentEdges)
+            for (j in 1:(cn - 1)) for (k in (j + 1):cn) {
+                e1 <- currentEdges[j]
+                e2 <- currentEdges[k]
+                currState <- interactionMatrix[e1, e2]
+                p0 <- tProb[currState + 1, 1]
+                r <- runif(1)
+                if (r < p0) {
+                  interactionMatrix[e1, e2] <- 0
+                  interactionMatrix[e2, e1] <- 0
+                }
+                else {
+                  interactionMatrix[e1, e2] <- 1
+                  interactionMatrix[e2, e1] <- 1
+                }
+            }
+            toCut <- which(currentEdges == ancestorRow)
+            currentEdges <- currentEdges[-toCut]
+            currentEdges <- c(currentEdges, descendantRow)
+            for (j in 1:length(descendantRow)) {
+                interactionMatrix[, descendantRow[j]] <- interactionMatrix[,
+                  ancestorRow]
+                interactionMatrix[descendantRow[j], ] <- interactionMatrix[ancestorRow,
+                  ]
+                diag(interactionMatrix) <- 0
+            }
+            r <- runif(1)
+            if (r < sProb) {
+                interactionMatrix[descendantRow, descendantRow] <- 1
+            }
+        }
+    }
+    nTaxa <- length(phy$tip.label)
+    tips <- which(phy$edge[, 2] <= nTaxa)
+    oo <- phy$edge[tips, 2]
+    res <- interactionMatrix[tips, tips]
+    rownames(res) <- phy$tip.label[oo]
+    colnames(res) <- phy$tip.label[oo]
+    return(res)
+}
+
+[[7]]$visible
+[1] FALSE
+
+
+> fitPhyloNetwork(tt, xx, c(0.1, 0.1, 0.5))
+Error in rownames(network) (from fitPhyloNetwork.R#12) : object 'xx' not found
+> xx<-simPhyloNetwork(tt, qRate=0.1, sProb=0.5)
+> fitPhyloNetwork(tt, xx, c(0.1, 0.1, 0.5))
+[1] 394.526
+> foo<-function(x) {
++   q01<-exp(x[1])
++   q10<-exp(x[2])
++   pSpec<-exp(x[3])
++   fitPhyloNetwork(tt, xx, c(0.1, 0.1, 0.5))
++ }
+> foo(log(c(0.1, 0.1, 0.5)))
+[1] 394.526
+> out<-optim(log(c(0.5, 0.5, 0.5)), foo, control=list(trace=6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 394.526024
+  Scaled convergence tolerance is 5.8789e-06
+Stepsize computed as 0.069315
+Exiting from Nelder Mead minimizer
+    4 function evaluations used
+> exp(out$par)
+[1] 0.5 0.5 0.5
+> lnlSurf<-matrix(nrow=9, ncol=9)
+> for(fr in 1:9)
++   for(br in 1:9)
++     lnlSurf[fr, br]<-fitPhyloNetwork(tt, xx, c(fr/45, br/45, 0.5))
+  C-c C-c
+> contour(lnlSurf, levels=320:340, col="red", x=1:9/45, y=1:9/45)
+> contour(lnlSurf, , x=1:9/45, y=1:9/45, add=T)
+> sProb <- c(0,2)  # pSpec = probability of speciation within the network
+> qProb <- c(0,1)  # transition probability between interacting and not-interacting
+> tProb <- c(10,100)  # total number of taxa in the tree
+> spProb <- c(0,2)  # lambda for tree simulation
+> pSpec <- runif(1, sProb[1], sProb[2])
+> q01 <- runif(1, qProb[1], qProb[2])
+> q10 <- runif(1, qProb[1], qProb[2])
+> lambda <- runif(1, spProb[1], spProb[2])
+> ntaxa <- round(runif(1, tProb[1], tProb[2]))
+> tt <- sim.bdtree(b = lambda, d = 0, stop = "taxa", n = ntaxa)
+> tt <- drop.tip(tt, paste0("s", ntaxa))
+> net <- simPhyloNetwork(tt, qRate = q01, sProb = pSpec)
+> foo <- function(par) {
++     q01 <- exp(par[1])
++     q10 <- exp(par[2])
++     pSpec <- exp(par[3])
++     fitPhyloNetwork(tt, net, c(par[1], par[2], par[3]))
++ }
+> foo(log(c(q01, q10, pSpec)))
+Error in if (logx == -Inf) return(logy) else max(logx, logy) + log1p(exp(-abs(logx -  (from logspace_add.R#3) :
+  missing value where TRUE/FALSE needed
+In addition: Warning messages:
+1: In log(p[i, ]) : NaNs produced
+2: In log(p[i, ]) : NaNs produced
+> tt <- sim.bdtree(b = lambda, d = 0, stop = "taxa", n = ntaxa)
+> net <- simPhyloNetwork(tt, qRate = q01, sProb = pSpec)
+> foo <- function(par) {
++     q01 <- exp(par[1])
++     q10 <- exp(par[2])
++     pSpec <- exp(par[3])
++     fitPhyloNetwork(tt, net, c(par[1], par[2], par[3]))
++ }
+> foo(log(c(q01, q10, pSpec)))
+Error in if (logx == -Inf) return(logy) else max(logx, logy) + log1p(exp(-abs(logx -  (from logspace_add.R#3) :
+  missing value where TRUE/FALSE needed
+In addition: Warning messages:
+1: In log(p[i, ]) : NaNs produced
+2: In log(p[i, ]) : NaNs produced
+> foo <- function(par) {
++     q01 <- exp(par[1])
++     q10 <- exp(par[2])
++     pSpec <- exp(par[3])
++     fitPhyloNetwork(tt, net, c(median(qProb), median(qProb), median(sProb)))
++ }
+> foo(log(c(q01, q10, pSpec)))
+[1] 312.9634
+> out <- optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 312.963366
+  Scaled convergence tolerance is 4.66352e-06
+Stepsize computed as 0.069315
+Exiting from Nelder Mead minimizer
+    4 function evaluations used
+> exp(out$par)
+[1] 0.5 0.5 0.5
+> lnlSurf<-matrix(nrow=9, ncol=9)
+> for(fr in 1:9)
++   for(br in 1:9)
++     lnlSurf[fr, br]<-fitPhyloNetwork(tt, net, c(fr/45, br/45, 0.5))
+> contour(lnlSurf, levels=320:340, col="red", x=1:9/45, y=1:9/45)
+> contour(lnlSurf, , x=1:9/45, y=1:9/45, add=T)
+> pSpec <- runif(1, sProb[1], sProb[2])
+> q01 <- runif(1, qProb[1], qProb[2])
+> q10 <- q01
+> lambda <- runif(1, spProb[1], spProb[2])
+> ntaxa <- round(runif(1, tProb[1], tProb[2]))
+> tt <- sim.bdtree(b = lambda, d = 0, stop = "taxa", n = ntaxa)
+> tt
+
+Phylogenetic tree with 61 tips and 60 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> tt <- drop.tip(tt, paste0("s", ntaxa))
+> tt
+
+Phylogenetic tree with 60 tips and 59 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> net <- simPhyloNetwork(tt, qRate = q01, sProb = pSpec)
+> foo <- function(par) {
++     q01 <- exp(par[1])
++     q10 <- exp(par[2])
++     pSpec <- exp(par[3])
++     fitPhyloNetwork(tt, net, c(median(qProb), median(qProb), median(sProb)))
++ }
+> foo(log(c(q01, q10, pSpec)))
+[1] 1038.74
+> out <- optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 1038.740002
+  Scaled convergence tolerance is 1.54784e-05
+Stepsize computed as 0.069315
+Exiting from Nelder Mead minimizer
+    4 function evaluations used
+> exp(out$par)
+[1] 0.5 0.5 0.5
+> foo <- function(par) {
++     q01 <- exp(par[1])
++     q10 <- exp(par[2])
++     pSpec <- exp(par[3])
++     fitPhyloNetwork(tt, net, c(q01, q10, pSpec))
++ }
+> foo(log(c(q01, q10, pSpec)))
+[1] 1023.419
+> out <- optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 1046.306520
+  Scaled convergence tolerance is 1.55912e-05
+Stepsize computed as 0.069315
+BUILD              4 1046.306520 1042.990911
+EXTENSION          6 1045.549282 1040.706679
+LO-REDUCTION       8 1045.227274 1040.706679
+EXTENSION         10 1042.990911 1036.593517
+EXTENSION         12 1041.404047 1032.660249
+EXTENSION         14 1040.706679 1028.999746
+LO-REDUCTION      16 1036.593517 1028.999746
+EXTENSION         18 1032.660249 1023.970494
+LO-REDUCTION      20 1030.751396 1023.970494
+LO-REDUCTION      22 1028.999746 1023.970494
+LO-REDUCTION      24 1026.077591 1023.970494
+REFLECTION        26 1025.006446 1023.349875
+REFLECTION        28 1024.314464 1023.154675
+EXTENSION         30 1023.970494 1021.571611
+LO-REDUCTION      32 1023.349875 1021.571611
+LO-REDUCTION      34 1023.154675 1021.571611
+LO-REDUCTION      36 1022.309349 1021.545289
+REFLECTION        38 1021.880064 1021.226373
+LO-REDUCTION      40 1021.571611 1021.226373
+LO-REDUCTION      42 1021.545289 1021.226373
+LO-REDUCTION      44 1021.297961 1021.197190
+HI-REDUCTION      46 1021.282680 1021.197190
+LO-REDUCTION      48 1021.256564 1021.197190
+LO-REDUCTION      50 1021.241547 1021.197190
+LO-REDUCTION      52 1021.226373 1021.189456
+LO-REDUCTION      54 1021.205836 1021.187734
+REFLECTION        56 1021.197190 1021.184284
+REFLECTION        58 1021.189456 1021.179179
+HI-REDUCTION      60 1021.187734 1021.179106
+HI-REDUCTION      62 1021.184284 1021.178262
+HI-REDUCTION      64 1021.179179 1021.176683
+HI-REDUCTION      66 1021.179106 1021.176317
+LO-REDUCTION      68 1021.178262 1021.175801
+LO-REDUCTION      70 1021.176683 1021.175234
+LO-REDUCTION      72 1021.176317 1021.175020
+LO-REDUCTION      74 1021.175801 1021.175020
+LO-REDUCTION      76 1021.175234 1021.175020
+REFLECTION        78 1021.175177 1021.174567
+HI-REDUCTION      80 1021.175031 1021.174567
+LO-REDUCTION      82 1021.175020 1021.174567
+LO-REDUCTION      84 1021.174709 1021.174567
+LO-REDUCTION      86 1021.174702 1021.174567
+REFLECTION        88 1021.174608 1021.174506
+LO-REDUCTION      90 1021.174572 1021.174498
+HI-REDUCTION      92 1021.174567 1021.174498
+EXTENSION         94 1021.174509 1021.174441
+LO-REDUCTION      96 1021.174506 1021.174441
+EXTENSION         98 1021.174498 1021.174346
+LO-REDUCTION     100 1021.174443 1021.174346
+HI-REDUCTION     102 1021.174441 1021.174346
+EXTENSION        104 1021.174396 1021.174232
+LO-REDUCTION     106 1021.174392 1021.174232
+REFLECTION       108 1021.174346 1021.174215
+EXTENSION        110 1021.174259 1021.174002
+LO-REDUCTION     112 1021.174232 1021.174002
+EXTENSION        114 1021.174215 1021.173982
+EXTENSION        116 1021.174066 1021.173693
+LO-REDUCTION     118 1021.174002 1021.173693
+LO-REDUCTION     120 1021.173982 1021.173693
+EXTENSION        122 1021.173790 1021.173543
+EXTENSION        124 1021.173721 1021.173458
+LO-REDUCTION     126 1021.173693 1021.173458
+LO-REDUCTION     128 1021.173543 1021.173458
+HI-REDUCTION     130 1021.173518 1021.173458
+HI-REDUCTION     132 1021.173518 1021.173458
+EXTENSION        134 1021.173490 1021.173391
+LO-REDUCTION     136 1021.173487 1021.173391
+LO-REDUCTION     138 1021.173458 1021.173391
+REFLECTION       140 1021.173427 1021.173378
+EXTENSION        142 1021.173405 1021.173357
+LO-REDUCTION     144 1021.173391 1021.173357
+LO-REDUCTION     146 1021.173378 1021.173357
+Exiting from Nelder Mead minimizer
+    148 function evaluations used
+> exp(out$par)
+[1] 0.8504394 0.7718425 0.9794304
+> c(q01, q10, pSpec)
+[1] 0.9213137 0.9213137 0.9898653
+> out
+$par
+[1] -0.16200206 -0.25897477 -0.02078411
+
+$value
+[1] 1021.173
+
+$counts
+function gradient
+     148       NA
+
+$convergence
+[1] 0
+
+$message
+NULL
+
+> tt
+
+Phylogenetic tree with 60 tips and 59 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> foo(log(c(q01, q10, pSpec)))
+[1] 1023.419
+> res <- c(out$par, out$value, q01, q10, pSpec)
+> res
+[1]   -0.16200206   -0.25897477   -0.02078411 1021.17335707    0.92131366
+[6]    0.92131366    0.98986534
+> res <- c(exp(out$par), out$value, q01, q10, pSpec)
+> res
+[1]    0.8504394    0.7718425    0.9794304 1021.1733571    0.9213137
+[6]    0.9213137    0.9898653
+> res <- c(out$value, exp(out$par), q01, q10, pSpec)
+> res
+[1] 1021.1733571    0.8504394    0.7718425    0.9794304    0.9213137
+[6]    0.9213137    0.9898653
+> pSpec <- numeric(1000)
+> pSpec[] <- NA
+> pSpec
+   [1] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+  [25] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+  [49] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+  [73] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+  [97] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [121] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [145] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [169] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [193] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [217] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [241] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [265] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [289] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [313] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [337] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [361] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [385] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [409] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [433] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [457] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [481] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [505] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [529] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [553] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [577] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [601] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [625] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [649] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [673] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [697] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [721] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [745] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [769] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [793] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [817] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [841] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [865] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [889] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [913] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [937] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [961] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+ [985] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+> trees <- as.list(rep(NA, 1000))
+> trees[[1]]
+[1] NA
+> trees[1:10]
+[[1]]
+[1] NA
+
+[[2]]
+[1] NA
+
+[[3]]
+[1] NA
+
+[[4]]
+[1] NA
+
+[[5]]
+[1] NA
+
+[[6]]
+[1] NA
+
+[[7]]
+[1] NA
+
+[[8]]
+[1] NA
+
+[[9]]
+[1] NA
+
+[[10]]
+[1] NA
+
+> pSpec <- numeric(1000)
+> pSpec[] <- NA
+> q01 <- numeric(1000)
+> q01[] <- NA
+> lambda <- numeric(1000)
+> lambda[] <- NA
+> ntaxa <- numeric(1000)
+> ntaxa[] <- NA
+> trees <- as.list(rep(NA, 1000))
+> nets <- as.list(rep(NA, 1000))
+> sym.trans <- function(x) {
++     pSpec[x] <- runif(1, sProb[1], sProb[2])
++     q01[x] <- runif(1, qProb[1], qProb[2])
++     q10[x] <- q01
++     lambda[x] <- runif(1, spProb[1], spProb[2])
++     ntaxa[x] <- round(runif(1, tProb[1], tProb[2]))
++
++
++     tt[[x]] <- sim.bdtree(b = lambda[x], d = 0, stop = "taxa", n = ntaxa[x])
++     tt[[x]] <- drop.tip(tt[[x]], paste0("s", ntaxa[x]))
++     net[[x]] <- simPhyloNetwork(tt[[x]], qRate = q01[x], sProb = pSpec[x])
++
++
++     foo <- function(par) {
++         q01 <- exp(par[1])
++         q10 <- exp(par[2])
++         pSpec <- exp(par[3])
++         fitPhyloNetwork(tt[[x]], net[[x]], c(q01[x], q10[x], pSpec[x]))
++     }
++
++     #foo(log(c(q01[x], q10[x], pSpec[x])))
++     out <- optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6))
++     res <- c(x, out$value, exp(out$par), q01[x], q10[x], pSpec[x])
++     #exp(out$par)
++ }
+> sym.trans(1)
+Error in net[[x]] <- simPhyloNetwork(tt[[x]], qRate = q01[x], sProb = pSpec[x]) (from #11) :
+  more elements supplied than there are to replace
+In addition: Warning message:
+In q10[x] <- q01 :
+  number of items to replace is not a multiple of replacement length
+> sym.trans <- function(x) {
++     pSpec[x] <- runif(1, sProb[1], sProb[2])
++     q01[x] <- runif(1, qProb[1], qProb[2])
++     q10[x] <- q01[x]
++     lambda[x] <- runif(1, spProb[1], spProb[2])
++     ntaxa[x] <- round(runif(1, tProb[1], tProb[2]))
++
++
++     tt[[x]] <- sim.bdtree(b = lambda[x], d = 0, stop = "taxa", n = ntaxa[x])
++     tt[[x]] <- drop.tip(tt[[x]], paste0("s", ntaxa[x]))
++     net[[x]] <- simPhyloNetwork(tt[[x]], qRate = q01[x], sProb = pSpec[x])
++
++
++     foo <- function(par) {
++         q01 <- exp(par[1])
++         q10 <- exp(par[2])
++         pSpec <- exp(par[3])
++         fitPhyloNetwork(tt[[x]], net[[x]], c(q01[x], q10[x], pSpec[x]))
++     }
++
++     #foo(log(c(q01[x], q10[x], pSpec[x])))
++     out <- optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6))
++     res <- c(x, out$value, exp(out$par), q01[x], q10[x], pSpec[x])
++     #exp(out$par)
++ }
+> sym.trans(1)
+Error in net[[x]] <- simPhyloNetwork(tt[[x]], qRate = q01[x], sProb = pSpec[x]) (from #11) :
+  more elements supplied than there are to replace
+> x <- 1
+> pSpec[x]
+[1] NA
+>     pSpec[x] <- runif(1, sProb[1], sProb[2])
+> pSpec[x]
+[1] 1.713426
+>     q01[x] <- runif(1, qProb[1], qProb[2])
+>     q10[x] <- q01[x]
+> q01
+   [1] 0.6749924        NA        NA        NA        NA        NA        NA
+   [8]        NA        NA        NA        NA        NA        NA        NA
+  [15]        NA        NA        NA        NA        NA        NA        NA
+  [22]        NA        NA        NA        NA        NA        NA        NA
+  [29]        NA        NA        NA        NA        NA        NA        NA
+  [36]        NA        NA        NA        NA        NA        NA        NA
+  [43]        NA        NA        NA        NA        NA        NA        NA
+  [50]        NA        NA        NA        NA        NA        NA        NA
+  [57]        NA        NA        NA        NA        NA        NA        NA
+  [64]        NA        NA        NA        NA        NA        NA        NA
+  [71]        NA        NA        NA        NA        NA        NA        NA
+  [78]        NA        NA        NA        NA        NA        NA        NA
+  [85]        NA        NA        NA        NA        NA        NA        NA
+  [92]        NA        NA        NA        NA        NA        NA        NA
+  [99]        NA        NA        NA        NA        NA        NA        NA
+ [106]        NA        NA        NA        NA        NA        NA        NA
+ [113]        NA        NA        NA        NA        NA        NA        NA
+ [120]        NA        NA        NA        NA        NA        NA        NA
+ [127]        NA        NA        NA        NA        NA        NA        NA
+ [134]        NA        NA        NA        NA        NA        NA        NA
+ [141]        NA        NA        NA        NA        NA        NA        NA
+ [148]        NA        NA        NA        NA        NA        NA        NA
+ [155]        NA        NA        NA        NA        NA        NA        NA
+ [162]        NA        NA        NA        NA        NA        NA        NA
+ [169]        NA        NA        NA        NA        NA        NA        NA
+ [176]        NA        NA        NA        NA        NA        NA        NA
+ [183]        NA        NA        NA        NA        NA        NA        NA
+ [190]        NA        NA        NA        NA        NA        NA        NA
+ [197]        NA        NA        NA        NA        NA        NA        NA
+ [204]        NA        NA        NA        NA        NA        NA        NA
+ [211]        NA        NA        NA        NA        NA        NA        NA
+ [218]        NA        NA        NA        NA        NA        NA        NA
+ [225]        NA        NA        NA        NA        NA        NA        NA
+ [232]        NA        NA        NA        NA        NA        NA        NA
+ [239]        NA        NA        NA        NA        NA        NA        NA
+ [246]        NA        NA        NA        NA        NA        NA        NA
+ [253]        NA        NA        NA        NA        NA        NA        NA
+ [260]        NA        NA        NA        NA        NA        NA        NA
+ [267]        NA        NA        NA        NA        NA        NA        NA
+ [274]        NA        NA        NA        NA        NA        NA        NA
+ [281]        NA        NA        NA        NA        NA        NA        NA
+ [288]        NA        NA        NA        NA        NA        NA        NA
+ [295]        NA        NA        NA        NA        NA        NA        NA
+ [302]        NA        NA        NA        NA        NA        NA        NA
+ [309]        NA        NA        NA        NA        NA        NA        NA
+ [316]        NA        NA        NA        NA        NA        NA        NA
+ [323]        NA        NA        NA        NA        NA        NA        NA
+ [330]        NA        NA        NA        NA        NA        NA        NA
+ [337]        NA        NA        NA        NA        NA        NA        NA
+ [344]        NA        NA        NA        NA        NA        NA        NA
+ [351]        NA        NA        NA        NA        NA        NA        NA
+ [358]        NA        NA        NA        NA        NA        NA        NA
+ [365]        NA        NA        NA        NA        NA        NA        NA
+ [372]        NA        NA        NA        NA        NA        NA        NA
+ [379]        NA        NA        NA        NA        NA        NA        NA
+ [386]        NA        NA        NA        NA        NA        NA        NA
+ [393]        NA        NA        NA        NA        NA        NA        NA
+ [400]        NA        NA        NA        NA        NA        NA        NA
+ [407]        NA        NA        NA        NA        NA        NA        NA
+ [414]        NA        NA        NA        NA        NA        NA        NA
+ [421]        NA        NA        NA        NA        NA        NA        NA
+ [428]        NA        NA        NA        NA        NA        NA        NA
+ [435]        NA        NA        NA        NA        NA        NA        NA
+ [442]        NA        NA        NA        NA        NA        NA        NA
+ [449]        NA        NA        NA        NA        NA        NA        NA
+ [456]        NA        NA        NA        NA        NA        NA        NA
+ [463]        NA        NA        NA        NA        NA        NA        NA
+ [470]        NA        NA        NA        NA        NA        NA        NA
+ [477]        NA        NA        NA        NA        NA        NA        NA
+ [484]        NA        NA        NA        NA        NA        NA        NA
+ [491]        NA        NA        NA        NA        NA        NA        NA
+ [498]        NA        NA        NA        NA        NA        NA        NA
+ [505]        NA        NA        NA        NA        NA        NA        NA
+ [512]        NA        NA        NA        NA        NA        NA        NA
+ [519]        NA        NA        NA        NA        NA        NA        NA
+ [526]        NA        NA        NA        NA        NA        NA        NA
+ [533]        NA        NA        NA        NA        NA        NA        NA
+ [540]        NA        NA        NA        NA        NA        NA        NA
+ [547]        NA        NA        NA        NA        NA        NA        NA
+ [554]        NA        NA        NA        NA        NA        NA        NA
+ [561]        NA        NA        NA        NA        NA        NA        NA
+ [568]        NA        NA        NA        NA        NA        NA        NA
+ [575]        NA        NA        NA        NA        NA        NA        NA
+ [582]        NA        NA        NA        NA        NA        NA        NA
+ [589]        NA        NA        NA        NA        NA        NA        NA
+ [596]        NA        NA        NA        NA        NA        NA        NA
+ [603]        NA        NA        NA        NA        NA        NA        NA
+ [610]        NA        NA        NA        NA        NA        NA        NA
+ [617]        NA        NA        NA        NA        NA        NA        NA
+ [624]        NA        NA        NA        NA        NA        NA        NA
+ [631]        NA        NA        NA        NA        NA        NA        NA
+ [638]        NA        NA        NA        NA        NA        NA        NA
+ [645]        NA        NA        NA        NA        NA        NA        NA
+ [652]        NA        NA        NA        NA        NA        NA        NA
+ [659]        NA        NA        NA        NA        NA        NA        NA
+ [666]        NA        NA        NA        NA        NA        NA        NA
+ [673]        NA        NA        NA        NA        NA        NA        NA
+ [680]        NA        NA        NA        NA        NA        NA        NA
+ [687]        NA        NA        NA        NA        NA        NA        NA
+ [694]        NA        NA        NA        NA        NA        NA        NA
+ [701]        NA        NA        NA        NA        NA        NA        NA
+ [708]        NA        NA        NA        NA        NA        NA        NA
+ [715]        NA        NA        NA        NA        NA        NA        NA
+ [722]        NA        NA        NA        NA        NA        NA        NA
+ [729]        NA        NA        NA        NA        NA        NA        NA
+ [736]        NA        NA        NA        NA        NA        NA        NA
+ [743]        NA        NA        NA        NA        NA        NA        NA
+ [750]        NA        NA        NA        NA        NA        NA        NA
+ [757]        NA        NA        NA        NA        NA        NA        NA
+ [764]        NA        NA        NA        NA        NA        NA        NA
+ [771]        NA        NA        NA        NA        NA        NA        NA
+ [778]        NA        NA        NA        NA        NA        NA        NA
+ [785]        NA        NA        NA        NA        NA        NA        NA
+ [792]        NA        NA        NA        NA        NA        NA        NA
+ [799]        NA        NA        NA        NA        NA        NA        NA
+ [806]        NA        NA        NA        NA        NA        NA        NA
+ [813]        NA        NA        NA        NA        NA        NA        NA
+ [820]        NA        NA        NA        NA        NA        NA        NA
+ [827]        NA        NA        NA        NA        NA        NA        NA
+ [834]        NA        NA        NA        NA        NA        NA        NA
+ [841]        NA        NA        NA        NA        NA        NA        NA
+ [848]        NA        NA        NA        NA        NA        NA        NA
+ [855]        NA        NA        NA        NA        NA        NA        NA
+ [862]        NA        NA        NA        NA        NA        NA        NA
+ [869]        NA        NA        NA        NA        NA        NA        NA
+ [876]        NA        NA        NA        NA        NA        NA        NA
+ [883]        NA        NA        NA        NA        NA        NA        NA
+ [890]        NA        NA        NA        NA        NA        NA        NA
+ [897]        NA        NA        NA        NA        NA        NA        NA
+ [904]        NA        NA        NA        NA        NA        NA        NA
+ [911]        NA        NA        NA        NA        NA        NA        NA
+ [918]        NA        NA        NA        NA        NA        NA        NA
+ [925]        NA        NA        NA        NA        NA        NA        NA
+ [932]        NA        NA        NA        NA        NA        NA        NA
+ [939]        NA        NA        NA        NA        NA        NA        NA
+ [946]        NA        NA        NA        NA        NA        NA        NA
+ [953]        NA        NA        NA        NA        NA        NA        NA
+ [960]        NA        NA        NA        NA        NA        NA        NA
+ [967]        NA        NA        NA        NA        NA        NA        NA
+ [974]        NA        NA        NA        NA        NA        NA        NA
+ [981]        NA        NA        NA        NA        NA        NA        NA
+ [988]        NA        NA        NA        NA        NA        NA        NA
+ [995]        NA        NA        NA        NA        NA        NA
+> q01[x]
+[1] 0.6749924
+> q10[x]
+[1] 0.6749924
+>     lambda[x] <- runif(1, spProb[1], spProb[2])
+> lambda[x]
+[1] 0.006425726
+> ntaxa[x]
+[1] NA
+>     ntaxa[x] <- round(runif(1, tProb[1], tProb[2]))
+> ntaxa[x]
+[1] 84
+>     tt[[x]] <- sim.bdtree(b = lambda[x], d = 0, stop = "taxa", n = ntaxa[x])
+> tt[[x]]
+
+Phylogenetic tree with 84 tips and 83 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> tt[[x]]
+
+Phylogenetic tree with 84 tips and 83 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+>     tt[[x]] <- drop.tip(tt[[x]], paste0("s", ntaxa[x]))
+> tt[[x]]
+
+Phylogenetic tree with 83 tips and 82 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+>     net[[x]] <- simPhyloNetwork(tt[[x]], qRate = q01[x], sProb = pSpec[x])
+Error in net[[x]] <- simPhyloNetwork(tt[[x]], qRate = q01[x], sProb = pSpec[x]) :
+  more elements supplied than there are to replace
+> tt[[x]]
+
+Phylogenetic tree with 83 tips and 82 internal nodes.
+
+Tip labels:
+	s1, s2, s3, s4, s5, s6, ...
+
+Rooted; includes branch lengths.
+> q01[x]
+[1] 0.6749924
+> pSpec[x]
+[1] 1.713426
+> simPhyloNetwork(tt[[x]], qRate = q01[x], sProb = pSpec[x])
+    s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12 s13 s14 s15 s16 s17 s18 s19 s20 s21
+s1   0  0  0  1  1  1  0  1  1   0   0   0   1   1   0   1   1   1   0   0   1
+s2   0  0  1  0  1  0  1  1  1   0   1   0   1   0   1   0   0   1   0   0   0
+s3   0  1  0  0  0  1  1  0  0   0   0   0   1   1   0   1   1   0   0   1   1
+s4   1  0  0  0  0  1  0  1  1   1   1   0   1   0   1   1   1   1   0   0   0
+s5   1  1  0  0  0  1  0  0  1   1   1   1   1   1   0   0   0   0   0   1   1
+s6   1  0  1  1  1  0  0  1  1   0   1   1   0   1   1   0   1   0   0   1   1
+s7   0  1  1  0  0  0  0  0  0   1   0   0   1   1   1   1   0   0   0   1   1
+s8   1  1  0  1  0  1  0  0  0   0   1   0   0   0   0   1   0   1   1   1   0
+s9   1  1  0  1  1  1  0  0  0   1   1   0   1   1   1   0   0   0   1   1   0
+s10  0  0  0  1  1  0  1  0  1   0   0   1   1   0   0   1   1   1   0   0   0
+s11  0  1  0  1  1  1  0  1  1   0   0   1   0   1   0   1   1   0   0   0   1
+s12  0  0  0  0  1  1  0  0  0   1   1   0   1   1   0   1   1   0   0   0   0
+s13  1  1  1  1  1  0  1  0  1   1   0   1   0   1   0   1   0   1   0   1   1
+s14  1  0  1  0  1  1  1  0  1   0   1   1   1   0   1   1   1   1   0   0   0
+s15  0  1  0  1  0  1  1  0  1   0   0   0   0   1   0   1   1   0   1   1   1
+s16  1  0  1  1  0  0  1  1  0   1   1   1   1   1   1   0   1   1   1   1   0
+s17  1  0  1  1  0  1  0  0  0   1   1   1   0   1   1   1   0   0   0   1   0
+s18  1  1  0  1  0  0  0  1  0   1   0   0   1   1   0   1   0   0   1   1   1
+s19  0  0  0  0  0  0  0  1  1   0   0   0   0   0   1   1   0   1   0   0   0
+s20  0  0  1  0  1  1  1  1  1   0   0   0   1   0   1   1   1   1   0   0   1
+s21  1  0  1  0  1  1  1  0  0   0   1   0   1   0   1   0   0   1   0   1   0
+s22  1  1  0  1  0  1  1  0  1   0   0   0   1   0   1   1   1   0   1   1   0
+s23  0  1  1  1  1  0  0  1  0   1   0   0   0   0   1   1   0   1   1   0   0
+s24  1  0  1  0  1  0  1  1  1   1   0   1   1   0   0   0   0   1   1   0   1
+s25  1  0  0  1  1  0  1  1  0   1   0   1   0   1   1   1   1   1   0   0   0
+s26  0  0  1  0  1  1  0  0  0   0   1   1   1   1   0   0   0   0   0   0   0
+s27  0  0  1  0  1  0  0  1  0   0   1   1   0   0   1   0   0   1   0   1   1
+s28  0  1  0  0  0  1  1  0  1   0   0   1   0   0   1   1   0   0   0   0   1
+s29  1  0  1  0  1  1  0  1  0   1   0   1   1   0   0   0   0   1   0   0   0
+s30  0  1  0  0  0  1  0  0  0   1   0   0   1   0   0   0   1   0   1   1   1
+s31  1  1  0  0  1  1  1  1  1   0   1   1   1   0   1   1   1   0   1   1   1
+s32  0  0  0  1  0  0  0  1  1   0   1   0   1   1   1   1   0   1   0   0   1
+s33  1  1  1  0  0  1  1  1  1   1   1   0   0   1   1   1   0   0   1   0   0
+s34  0  1  1  1  0  1  0  1  0   1   0   0   1   1   1   0   0   1   0   0   0
+s35  1  1  1  1  1  1  0  1  1   0   1   1   1   1   0   0   0   1   1   0   1
+s36  1  1  0  0  0  0  1  0  1   0   0   1   1   1   1   0   1   0   0   1   0
+s37  1  1  0  1  0  0  1  1  0   1   1   0   1   0   0   0   0   1   0   1   0
+s38  1  0  1  0  0  0  0  1  1   1   1   0   1   0   1   0   0   1   1   0   0
+s39  0  0  1  0  0  1  0  0  0   1   0   1   1   0   1   0   1   0   0   0   0
+s40  0  1  1  1  0  0  1  1  0   0   0   0   0   0   0   0   1   1   1   1   0
+s41  0  1  0  0  1  0  1  1  1   0   0   1   0   1   0   1   1   1   0   0   0
+s42  0  0  1  0  1  0  1  0  0   1   1   1   1   0   0   0   1   1   1   1   1
+s43  0  1  1  0  1  1  1  0  1   0   1   1   1   1   0   0   0   1   0   0   0
+s44  1  0  1  1  0  1  0  1  0   1   1   0   0   0   1   0   1   0   0   0   1
+s45  1  0  0  0  1  0  0  1  0   0   0   0   1   0   1   1   0   1   0   1   1
+s46  1  1  0  0  1  0  1  1  0   0   1   1   1   0   1   1   1   1   1   0   1
+s47  1  1  1  0  0  0  1  0  0   1   1   0   0   0   1   0   1   0   0   1   0
+s48  0  0  1  0  1  0  0  1  0   0   1   0   1   1   1   1   0   0   1   0   0
+s49  0  1  0  1  0  1  0  0  0   0   1   0   0   1   1   1   1   1   1   1   1
+s50  1  0  0  1  1  0  1  1  1   1   1   1   0   0   1   0   1   1   0   1   0
+s51  1  0  1  0  0  1  1  1  1   0   0   0   1   1   0   0   1   0   0   0   0
+s52  1  1  1  1  1  1  0  1  1   0   0   1   0   0   1   1   1   0   1   1   0
+s53  1  0  0  1  0  0  0  1  1   1   0   1   0   1   0   0   1   0   1   1   1
+s54  0  1  1  0  0  1  0  1  1   0   0   0   1   1   0   0   1   0   1   1   1
+s55  1  1  0  0  0  0  1  0  0   0   0   1   1   0   0   0   1   0   1   1   0
+s56  0  1  0  1  0  0  1  0  1   1   1   1   1   1   1   1   1   0   0   0   0
+s57  0  1  1  0  0  1  0  0  1   1   1   1   0   0   1   0   1   0   1   0   1
+s58  0  1  1  0  0  1  0  0  1   1   1   1   0   0   1   0   1   0   1   0   1
+s59  0  1  0  1  1  0  1  0  1   1   1   1   0   1   0   1   1   0   1   0   0
+s60  0  0  1  0  1  1  1  0  1   1   1   0   0   1   0   1   1   0   1   1   0
+s61  0  0  0  0  0  0  0  1  1   1   1   0   1   1   1   0   1   0   1   1   0
+s62  1  0  0  0  1  0  0  1  1   0   1   1   0   0   0   1   1   1   0   1   1
+s63  0  1  1  1  1  0  1  1  0   0   0   0   1   1   1   0   0   1   1   0   0
+s64  0  0  1  0  1  0  0  1  1   0   0   0   0   1   0   1   0   1   0   0   1
+s65  0  1  0  1  0  0  0  0  0   1   1   0   0   0   1   0   1   1   0   0   0
+s66  0  0  0  1  1  0  0  1  1   1   0   0   1   1   0   1   1   1   1   1   0
+s67  0  1  1  0  0  1  1  0  0   1   1   0   1   1   1   1   1   0   0   1   0
+s68  0  1  0  0  1  1  1  1  1   1   1   1   1   1   0   0   0   1   0   0   1
+s69  0  1  0  1  1  1  0  0  1   0   1   1   1   1   0   0   0   0   0   0   1
+s70  1  0  0  0  1  0  1  1  0   1   0   0   0   1   1   0   1   0   1   0   1
+s71  0  0  1  1  0  1  0  1  1   0   0   1   0   0   1   0   0   1   0   1   1
+s72  1  1  0  1  0  0  0  0  0   0   1   1   1   1   0   1   1   1   0   1   0
+s73  1  0  1  1  0  1  0  0  1   0   1   1   1   1   1   1   0   0   0   1   0
+s74  1  1  1  1  1  0  0  0  1   0   1   1   0   0   0   1   0   0   1   1   1
+s75  0  0  0  1  0  0  1  0  1   1   0   1   0   0   0   1   0   1   0   1   0
+s76  0  1  1  1  1  0  0  0  0   0   0   0   1   0   0   0   1   1   0   0   0
+s77  1  1  1  1  0  1  1  0  1   0   0   1   0   0   0   0   0   1   0   0   1
+s78  0  1  1  1  1  1  0  1  1   0   0   0   1   1   1   1   1   1   0   1   0
+s79  0  0  0  0  0  1  1  0  1   0   0   0   0   0   1   1   1   0   0   1   1
+s80  0  1  0  1  0  1  0  0  0   1   1   1   0   1   0   1   1   1   0   1   0
+s81  0  0  1  1  1  0  1  0  1   0   0   1   0   0   0   1   0   1   1   0   0
+s82  1  1  0  0  1  1  0  0  1   1   1   1   0   0   0   1   0   0   0   0   1
+s83  0  0  1  1  0  1  0  0  0   0   1   1   1   0   0   0   0   1   0   0   1
+    s22 s23 s24 s25 s26 s27 s28 s29 s30 s31 s32 s33 s34 s35 s36 s37 s38 s39 s40
+s1    1   0   1   1   0   0   0   1   0   1   0   1   0   1   1   1   1   0   0
+s2    1   1   0   0   0   0   1   0   1   1   0   1   1   1   1   1   0   0   1
+s3    0   1   1   0   1   1   0   1   0   0   0   1   1   1   0   0   1   1   1
+s4    1   1   0   1   0   0   0   0   0   0   1   0   1   1   0   1   0   0   1
+s5    0   1   1   1   1   1   0   1   0   1   0   0   0   1   0   0   0   0   0
+s6    1   0   0   0   1   0   1   1   1   1   0   1   1   1   0   0   0   1   0
+s7    1   0   1   1   0   0   1   0   0   1   0   1   0   0   1   1   0   0   1
+s8    0   1   1   1   0   1   0   1   0   1   1   1   1   1   0   1   1   0   1
+s9    1   0   1   0   0   0   1   0   0   1   1   1   0   1   1   0   1   0   0
+s10   0   1   1   1   0   0   0   1   1   0   0   1   1   0   0   1   1   1   0
+s11   0   0   0   0   1   1   0   0   0   1   1   1   0   1   0   1   1   0   0
+s12   0   0   1   1   1   1   1   1   0   1   0   0   0   1   1   0   0   1   0
+s13   1   0   1   0   1   0   0   1   1   1   1   0   1   1   1   1   1   1   0
+s14   0   0   0   1   1   0   0   0   0   0   1   1   1   1   1   0   0   0   0
+s15   1   1   0   1   0   1   1   0   0   1   1   1   1   0   1   0   1   1   0
+s16   1   1   0   1   0   0   1   0   0   1   1   1   0   0   0   0   0   0   0
+s17   1   0   0   1   0   0   0   0   1   1   0   0   0   0   1   0   0   1   1
+s18   0   1   1   1   0   1   0   1   0   0   1   0   1   1   0   1   1   0   1
+s19   1   1   1   0   0   0   0   0   1   1   0   1   0   1   0   0   1   0   1
+s20   1   0   0   0   0   1   0   0   1   1   0   0   0   0   1   1   0   0   1
+s21   0   0   1   0   0   1   1   0   1   1   1   0   0   1   0   0   0   0   0
+s22   0   0   0   0   1   0   0   0   0   1   1   0   1   1   1   0   1   1   0
+s23   0   0   1   0   0   1   1   0   1   1   1   1   0   1   1   0   1   1   0
+s24   0   1   0   0   1   1   0   1   0   1   0   0   0   1   0   1   0   1   1
+s25   0   0   0   0   0   1   0   0   1   0   0   0   0   1   1   1   1   1   1
+s26   1   0   1   0   0   0   0   1   1   0   0   0   0   1   1   1   0   1   0
+s27   0   1   1   1   0   0   1   1   0   0   0   1   0   0   0   1   0   1   0
+s28   0   1   0   0   0   1   0   1   0   0   1   1   0   1   1   1   1   1   1
+s29   0   0   1   0   1   1   1   0   0   0   1   1   1   1   0   1   0   1   1
+s30   0   1   0   1   1   0   0   0   0   1   0   0   1   1   0   1   1   1   1
+s31   1   1   1   0   0   0   0   0   1   0   1   0   0   0   0   1   1   1   1
+s32   1   1   0   0   0   0   1   1   0   1   0   0   1   1   1   0   0   0   0
+s33   0   1   0   0   0   1   1   1   0   0   0   0   0   0   1   0   0   0   1
+s34   1   0   0   0   0   0   0   1   1   0   1   0   0   1   1   1   1   0   0
+s35   1   1   1   1   1   0   1   1   1   0   1   0   1   0   1   1   0   1   1
+s36   1   1   0   1   1   0   1   0   0   0   1   1   1   1   0   1   1   0   1
+s37   0   0   1   1   1   1   1   1   1   1   0   0   1   1   1   0   1   1   0
+s38   1   1   0   1   0   0   1   0   1   1   0   0   1   0   1   1   0   1   0
+s39   1   1   1   1   1   1   1   1   1   1   0   0   0   1   0   1   1   0   0
+s40   0   0   1   1   0   0   1   1   1   1   0   1   0   1   1   0   0   0   0
+s41   1   1   0   1   0   1   1   1   0   0   0   0   1   0   1   0   1   1   1
+s42   0   0   1   1   0   0   1   1   0   0   1   0   1   1   1   0   0   0   0
+s43   1   1   0   0   0   0   1   0   1   1   0   0   1   0   0   1   1   0   1
+s44   0   0   1   0   0   0   0   0   0   1   1   0   0   0   0   0   0   1   0
+s45   0   1   0   1   0   1   1   0   1   0   0   0   1   0   0   1   0   1   1
+s46   0   1   0   1   1   0   1   1   0   0   1   0   1   0   0   1   1   0   0
+s47   0   1   1   1   0   0   1   1   1   1   0   1   1   1   0   0   0   1   0
+s48   0   0   0   1   1   1   1   1   0   0   1   0   1   0   0   0   0   0   0
+s49   1   0   1   0   0   1   0   1   1   0   1   0   1   0   0   1   1   1   1
+s50   0   0   0   1   0   0   0   0   0   1   0   0   1   0   1   0   1   0   0
+s51   0   0   0   0   0   0   0   0   0   1   1   0   1   1   0   0   1   0   1
+s52   0   1   1   0   1   1   0   1   0   1   0   1   1   1   1   1   1   1   1
+s53   0   0   0   1   1   1   1   0   1   1   1   0   0   1   0   1   1   1   1
+s54   0   0   1   1   0   0   1   1   0   0   1   1   1   0   1   1   1   1   1
+s55   0   0   0   0   0   1   1   0   1   1   0   1   1   1   0   0   1   0   1
+s56   0   0   0   0   0   1   1   0   0   0   1   0   1   1   1   0   0   1   0
+s57   0   1   0   0   1   0   1   0   0   0   1   0   1   0   1   1   1   1   1
+s58   0   1   0   0   1   0   1   0   0   0   1   0   1   0   1   1   1   1   1
+s59   0   1   1   0   0   1   1   1   0   0   1   0   1   1   1   1   1   0   0
+s60   0   1   1   0   0   0   0   0   0   0   0   0   0   0   1   0   1   0   1
+s61   1   0   0   0   1   0   1   1   0   1   1   1   1   0   0   0   1   0   0
+s62   1   0   1   1   0   1   0   1   0   1   0   1   0   0   0   1   1   0   0
+s63   0   1   1   1   1   0   0   0   1   0   1   1   0   1   0   1   0   0   0
+s64   1   1   0   0   0   0   0   0   0   1   0   0   0   1   1   1   1   1   1
+s65   1   0   0   1   0   0   0   0   0   0   0   1   0   0   0   0   1   1   0
+s66   0   1   0   0   0   0   1   1   1   0   1   1   1   1   1   0   0   0   1
+s67   0   0   1   0   1   1   1   1   1   1   0   1   1   1   1   1   0   1   1
+s68   0   1   1   0   0   0   1   1   0   0   1   0   1   1   1   0   1   0   0
+s69   1   0   1   0   1   1   0   1   0   0   0   0   0   0   0   0   1   0   0
+s70   0   1   0   1   1   1   1   1   1   0   1   1   1   1   0   0   0   1   0
+s71   0   0   1   1   0   1   0   1   0   1   1   1   1   1   0   0   1   1   1
+s72   1   1   1   0   1   0   1   0   1   0   1   1   1   1   0   0   1   1   1
+s73   0   0   1   0   0   0   0   0   0   0   1   0   1   1   1   1   0   0   1
+s74   0   1   1   1   1   1   1   1   0   0   0   0   0   0   0   1   0   1   1
+s75   1   1   1   1   0   1   0   1   1   1   1   0   1   0   1   0   0   0   0
+s76   1   1   1   1   1   0   1   0   0   0   0   1   1   0   0   0   0   0   0
+s77   1   1   0   0   0   1   0   1   0   0   1   1   1   1   1   0   1   0   1
+s78   0   0   0   1   0   0   1   0   0   1   1   1   0   1   1   0   0   0   0
+s79   1   1   1   0   1   0   1   1   0   0   0   0   1   0   0   0   1   0   1
+s80   0   1   0   0   0   1   1   0   1   1   1   0   1   0   1   0   0   0   1
+s81   1   1   1   0   1   0   1   0   0   1   0   0   1   0   1   1   1   0   0
+s82   0   0   0   1   0   1   1   1   1   0   1   1   1   1   0   0   0   1   0
+s83   0   1   0   0   1   0   0   1   1   1   1   0   0   1   1   0   1   0   1
+    s41 s42 s43 s44 s45 s46 s47 s48 s49 s50 s51 s52 s53 s54 s55 s56 s57 s58 s59
+s1    0   0   0   1   1   1   1   0   0   1   1   1   1   0   1   0   0   0   0
+s2    1   0   1   0   0   1   1   0   1   0   0   1   0   1   1   1   1   1   1
+s3    0   1   1   1   0   0   1   1   0   0   1   1   0   1   0   0   1   1   0
+s4    0   0   0   1   0   0   0   0   1   1   0   1   1   0   0   1   0   0   1
+s5    1   1   1   0   1   1   0   1   0   1   0   1   0   0   0   0   0   0   1
+s6    0   0   1   1   0   0   0   0   1   0   1   1   0   1   0   0   1   1   0
+s7    1   1   1   0   0   1   1   0   0   1   1   0   0   0   1   1   0   0   1
+s8    1   0   0   1   1   1   0   1   0   1   1   1   1   1   0   0   0   0   0
+s9    1   0   1   0   0   0   0   0   0   1   1   1   1   1   0   1   1   1   1
+s10   0   1   0   1   0   0   1   0   0   1   0   0   1   0   0   1   1   1   1
+s11   0   1   1   1   0   1   1   1   1   1   0   0   0   0   0   1   1   1   1
+s12   1   1   1   0   0   1   0   0   0   1   0   1   1   0   1   1   1   1   1
+s13   0   1   1   0   1   1   0   1   0   0   1   0   0   1   1   1   0   0   0
+s14   1   0   1   0   0   0   0   1   1   0   1   0   1   1   0   1   0   0   1
+s15   0   0   0   1   1   1   1   1   1   1   0   1   0   0   0   1   1   1   0
+s16   1   0   0   0   1   1   0   1   1   0   0   1   0   0   0   1   0   0   1
+s17   1   1   0   1   0   1   1   0   1   1   1   1   1   1   1   1   1   1   1
+s18   1   1   1   0   1   1   0   0   1   1   0   0   0   0   0   0   0   0   0
+s19   0   1   0   0   0   1   0   1   1   0   0   1   1   1   1   0   1   1   1
+s20   0   1   0   0   1   0   1   0   1   1   0   1   1   1   1   0   0   0   0
+s21   0   1   0   1   1   1   0   0   1   0   0   0   1   1   0   0   1   1   0
+s22   1   0   1   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0
+s23   1   0   1   0   1   1   1   0   0   0   0   1   0   0   0   0   1   1   1
+s24   0   1   0   1   0   0   1   0   1   0   0   1   0   1   0   0   0   0   1
+s25   1   1   0   0   1   1   1   1   0   1   0   0   1   1   0   0   0   0   0
+s26   0   0   0   0   0   1   0   1   0   0   0   1   1   0   0   0   1   1   0
+s27   1   0   0   0   1   0   0   1   1   0   0   1   1   0   1   1   0   0   1
+s28   1   1   1   0   1   1   1   1   0   0   0   0   1   1   1   1   1   1   1
+s29   1   1   0   0   0   1   1   1   1   0   0   1   0   1   0   0   0   0   1
+s30   0   0   1   0   1   0   1   0   1   0   0   0   1   0   1   0   0   0   0
+s31   0   0   1   1   0   0   1   0   0   1   1   1   1   0   1   0   0   0   0
+s32   0   1   0   1   0   1   0   1   1   0   1   0   1   1   0   1   1   1   1
+s33   0   0   0   0   0   0   1   0   0   0   0   1   0   1   1   0   0   0   0
+s34   1   1   1   0   1   1   1   1   1   1   1   1   0   1   1   1   1   1   1
+s35   0   1   0   0   0   0   1   0   0   0   1   1   1   0   1   1   0   0   1
+s36   1   1   0   0   0   0   0   0   0   1   0   1   0   1   0   1   1   1   1
+s37   0   0   1   0   1   1   0   0   1   0   0   1   1   1   0   0   1   1   1
+s38   1   0   1   0   0   1   0   0   1   1   1   1   1   1   1   0   1   1   1
+s39   1   0   0   1   1   0   1   0   1   0   0   1   1   1   0   1   1   1   0
+s40   1   0   1   0   1   0   0   0   1   0   1   1   1   1   1   0   1   1   0
+s41   0   1   1   1   0   1   1   1   0   1   0   1   1   0   0   1   0   0   0
+s42   1   0   1   1   1   1   0   0   1   1   1   1   0   0   1   0   0   0   1
+s43   1   1   0   1   0   1   0   0   1   0   1   0   0   1   0   1   0   0   1
+s44   1   1   1   0   1   1   0   0   0   0   0   0   1   1   0   1   0   0   0
+s45   0   1   0   1   0   1   0   0   1   0   1   0   0   1   1   1   1   1   0
+s46   1   1   1   1   1   0   1   1   0   0   0   0   1   1   0   1   0   0   1
+s47   1   0   0   0   0   1   0   1   1   0   1   0   1   1   0   1   1   1   0
+s48   1   0   0   0   0   1   1   0   1   0   0   1   1   0   0   1   1   1   1
+s49   0   1   1   0   1   0   1   1   0   1   0   0   0   0   0   0   0   0   1
+s50   1   1   0   0   0   0   0   0   1   0   1   1   0   1   0   0   0   0   1
+s51   0   1   1   0   1   0   1   0   0   1   0   1   1   0   0   1   0   0   1
+s52   1   1   0   0   0   0   0   1   0   1   1   0   0   1   0   0   0   0   1
+s53   1   0   0   1   0   1   1   1   0   0   1   0   0   1   0   1   0   0   0
+s54   0   0   1   1   1   1   1   0   0   1   0   1   1   0   0   1   1   1   0
+s55   0   1   0   0   1   0   0   0   0   0   0   0   0   0   0   1   0   0   1
+s56   1   0   1   1   1   1   1   1   0   0   1   0   1   1   1   0   1   1   1
+s57   0   0   0   0   1   0   1   1   0   0   0   0   0   1   0   1   1   1   0
+s58   0   0   0   0   1   0   1   1   0   0   0   0   0   1   0   1   1   1   0
+s59   0   1   1   0   0   1   0   1   1   1   1   1   0   0   1   1   0   0   0
+s60   1   1   1   1   0   1   0   1   1   0   1   1   0   0   1   0   1   1   1
+s61   0   1   0   1   1   1   0   1   1   1   0   0   0   0   1   1   1   1   1
+s62   0   0   0   0   1   1   0   1   0   0   0   1   0   1   1   0   1   1   0
+s63   1   1   1   1   1   1   1   1   0   1   0   0   0   0   1   1   1   1   1
+s64   1   1   0   1   1   1   0   1   0   1   0   0   0   1   0   0   1   1   1
+s65   0   0   1   1   0   1   1   0   0   0   0   0   0   1   1   1   0   0   1
+s66   1   1   1   0   0   0   0   0   1   0   0   0   0   1   1   1   0   0   0
+s67   0   1   0   1   1   1   0   1   0   1   1   1   1   1   0   0   1   1   0
+s68   0   1   1   0   0   1   1   1   1   1   1   1   0   1   0   0   1   1   1
+s69   0   1   0   1   0   1   1   1   1   1   0   1   0   1   0   0   0   0   1
+s70   1   1   0   1   1   0   1   1   1   1   0   0   0   0   0   1   1   1   0
+s71   1   0   0   0   0   1   0   0   0   1   0   0   1   0   1   0   0   0   1
+s72   1   0   0   0   1   0   1   1   1   0   0   1   1   0   0   1   0   0   0
+s73   1   0   1   0   1   1   1   1   1   0   0   1   0   0   0   0   1   1   0
+s74   1   0   0   0   1   1   0   1   1   0   0   1   1   0   1   0   1   1   0
+s75   1   0   0   0   1   0   0   0   1   0   0   0   0   0   0   0   1   1   1
+s76   0   0   0   0   0   0   1   1   0   1   0   0   0   0   0   1   0   0   0
+s77   0   1   1   1   1   0   1   1   0   0   1   1   0   1   1   0   1   1   0
+s78   0   0   0   1   1   1   1   1   1   0   1   1   1   1   0   0   0   0   0
+s79   1   1   0   1   1   0   1   1   0   0   0   0   0   0   0   1   0   0   1
+s80   1   0   1   1   0   1   0   1   1   0   0   1   1   0   0   1   1   1   0
+s81   1   0   0   0   1   1   1   1   1   1   0   0   1   0   1   0   1   1   1
+s82   0   1   0   0   0   1   1   0   1   1   0   1   0   0   0   1   0   0   1
+s83   0   1   0   1   0   0   0   0   1   0   1   0   1   1   0   1   1   1   1
+    s60 s61 s62 s63 s64 s65 s66 s67 s68 s69 s70 s71 s72 s73 s74 s75 s76 s77 s78
+s1    0   0   1   0   0   0   0   0   0   0   1   0   1   1   1   0   0   1   0
+s2    0   0   0   1   0   1   0   1   1   1   0   0   1   0   1   0   1   1   1
+s3    1   0   0   1   1   0   0   1   0   0   0   1   0   1   1   0   1   1   1
+s4    0   0   0   1   0   1   1   0   0   1   0   1   1   1   1   1   1   1   1
+s5    1   0   1   1   1   0   1   0   1   1   1   0   0   0   1   0   1   0   1
+s6    1   0   0   0   0   0   0   1   1   1   0   1   0   1   0   0   0   1   1
+s7    1   0   0   1   0   0   0   1   1   0   1   0   0   0   0   1   0   1   0
+s8    0   1   1   1   1   0   1   0   1   0   1   1   0   0   0   0   0   0   1
+s9    1   1   1   0   1   0   1   0   1   1   0   1   0   1   1   1   0   1   1
+s10   1   1   0   0   0   1   1   1   1   0   1   0   0   0   0   1   0   0   0
+s11   1   1   1   0   0   1   0   1   1   1   0   0   1   1   1   0   0   0   0
+s12   0   0   1   0   0   0   0   0   1   1   0   1   1   1   1   1   0   1   0
+s13   0   1   0   1   0   0   1   1   1   1   0   0   1   1   0   0   1   0   1
+s14   1   1   0   1   1   0   1   1   1   1   1   0   1   1   0   0   0   0   1
+s15   0   1   0   1   0   1   0   1   0   0   1   1   0   1   0   0   0   0   1
+s16   1   0   1   0   1   0   1   1   0   0   0   0   1   1   1   1   0   0   1
+s17   1   1   1   0   0   1   1   1   0   0   1   0   1   0   0   0   1   0   1
+s18   0   0   1   1   1   1   1   0   1   0   0   1   1   0   0   1   1   1   1
+s19   1   1   0   1   0   0   1   0   0   0   1   0   0   0   1   0   0   0   0
+s20   1   1   1   0   0   0   1   1   0   0   0   1   1   1   1   1   0   0   1
+s21   0   0   1   0   1   0   0   0   1   1   1   1   0   0   1   0   0   1   0
+s22   0   1   1   0   1   1   0   0   0   1   0   0   1   0   0   1   1   1   0
+s23   1   0   0   1   1   0   1   0   1   0   1   0   1   0   1   1   1   1   0
+s24   1   0   1   1   0   0   0   1   1   1   0   1   1   1   1   1   1   0   0
+s25   0   0   1   1   0   1   0   0   0   0   1   1   0   0   1   1   1   0   1
+s26   0   1   0   1   0   0   0   1   0   1   1   0   1   0   1   0   1   0   0
+s27   0   0   1   0   0   0   0   1   0   1   1   1   0   0   1   1   0   1   0
+s28   0   1   0   0   0   0   1   1   1   0   1   0   1   0   1   0   1   0   1
+s29   0   1   1   0   0   0   1   1   1   1   1   1   0   0   1   1   0   1   0
+s30   0   0   0   1   0   0   1   1   0   0   1   0   1   0   0   1   0   0   0
+s31   0   1   1   0   1   0   0   1   0   0   0   1   0   0   0   1   0   0   1
+s32   0   1   0   1   0   0   1   0   1   0   1   1   1   1   0   1   0   1   1
+s33   0   1   1   1   0   1   1   1   0   0   1   1   1   0   0   0   1   1   1
+s34   0   1   0   0   0   0   1   1   1   0   1   1   1   1   0   1   1   1   0
+s35   0   0   0   1   1   0   1   1   1   0   1   1   1   1   0   0   0   1   1
+s36   1   0   0   0   1   0   1   1   1   0   0   0   0   1   0   1   0   1   1
+s37   0   0   1   1   1   0   0   1   0   0   0   0   0   1   1   0   0   0   0
+s38   1   1   1   0   1   1   0   0   1   1   0   1   1   0   0   0   0   1   0
+s39   0   0   0   0   1   1   0   1   0   0   1   1   1   0   1   0   0   0   0
+s40   1   0   0   0   1   0   1   1   0   0   0   1   1   1   1   0   0   1   0
+s41   1   0   0   1   1   0   1   0   0   0   1   1   1   1   1   1   0   0   0
+s42   1   1   0   1   1   0   1   1   1   1   1   0   0   0   0   0   0   1   0
+s43   1   0   0   1   0   1   1   0   1   0   0   0   0   1   0   0   0   1   0
+s44   1   1   0   1   1   1   0   1   0   1   1   0   0   0   0   0   0   1   1
+s45   0   1   1   1   1   0   0   1   0   0   1   0   1   1   1   1   0   1   1
+s46   1   1   1   1   1   1   0   1   1   1   0   1   0   1   1   0   0   0   1
+s47   0   0   0   1   0   1   0   0   1   1   1   0   1   1   0   0   1   1   1
+s48   1   1   1   1   1   0   0   1   1   1   1   0   1   1   1   0   1   1   1
+s49   1   1   0   0   0   0   1   0   1   1   1   0   1   1   1   1   0   0   1
+s50   0   1   0   1   1   0   0   1   1   1   1   1   0   0   0   0   1   0   0
+s51   1   0   0   0   0   0   0   1   1   0   0   0   0   0   0   0   0   1   1
+s52   1   0   1   0   0   0   0   1   1   1   0   0   1   1   1   0   0   1   1
+s53   0   0   0   0   0   0   0   1   0   0   0   1   1   0   1   0   0   0   1
+s54   0   0   1   0   1   1   1   1   1   1   0   0   0   0   0   0   0   1   1
+s55   1   1   1   1   0   1   1   0   0   0   0   1   0   0   1   0   0   1   0
+s56   0   1   0   1   0   1   1   0   0   0   1   0   1   0   0   0   1   0   0
+s57   1   1   1   1   1   0   0   1   1   0   1   0   0   1   1   1   0   1   0
+s58   1   1   1   1   1   0   0   1   1   0   1   0   0   1   1   1   0   1   0
+s59   1   1   0   1   1   1   0   0   1   1   0   1   0   0   0   1   0   0   0
+s60   0   1   1   1   1   1   1   0   1   1   1   1   1   1   1   0   0   0   0
+s61   1   0   0   1   1   0   1   1   1   0   0   0   0   0   1   0   1   0   0
+s62   1   0   0   1   1   0   0   1   1   1   0   0   0   0   1   0   0   1   0
+s63   1   1   1   0   1   0   1   1   1   1   0   0   0   0   1   1   1   0   0
+s64   1   1   1   1   0   0   1   1   0   1   1   1   1   1   1   0   0   1   0
+s65   1   0   0   0   0   0   1   1   0   1   0   0   0   1   0   0   0   0   1
+s66   1   1   0   1   1   1   0   0   0   0   0   1   0   1   1   1   0   0   1
+s67   0   1   1   1   1   1   0   0   1   0   0   1   1   0   0   0   1   0   0
+s68   1   1   1   1   0   0   0   1   0   1   0   1   0   1   1   1   1   1   1
+s69   1   0   1   1   1   1   0   0   1   0   1   1   1   1   1   1   1   1   1
+s70   1   0   0   0   1   0   0   0   0   1   0   0   0   0   0   1   1   1   0
+s71   1   0   0   0   1   0   1   1   1   1   0   0   0   0   0   1   0   0   0
+s72   1   0   0   0   1   0   0   1   0   1   0   0   0   0   1   0   0   0   0
+s73   1   0   0   0   1   1   1   0   1   1   0   0   0   0   0   1   1   0   1
+s74   1   1   1   1   1   0   1   0   1   1   0   0   1   0   0   1   0   0   1
+s75   0   0   0   1   0   0   1   0   1   1   1   1   0   1   1   0   0   0   1
+s76   0   1   0   1   0   0   0   1   1   1   1   0   0   1   0   0   0   0   1
+s77   0   0   1   0   1   0   0   0   1   1   1   0   0   0   0   0   0   0   0
+s78   0   0   0   0   0   1   1   0   1   1   0   0   0   1   1   1   1   0   0
+s79   0   0   1   1   1   0   0   0   0   0   0   0   0   1   0   0   0   1   1
+s80   0   0   1   1   0   0   0   1   1   1   0   1   1   0   1   0   1   0   1
+s81   1   0   1   0   1   1   0   0   1   1   1   1   0   0   0   1   0   1   1
+s82   0   0   0   0   1   0   1   1   0   1   0   1   1   0   0   1   1   0   1
+s83   0   0   1   1   1   0   0   0   0   0   0   0   1   0   0   0   0   1   1
+    s79 s80 s81 s82 s83
+s1    0   0   0   1   0
+s2    0   1   0   1   0
+s3    0   0   1   0   1
+s4    0   1   1   0   1
+s5    0   0   1   1   0
+s6    1   1   0   1   1
+s7    1   0   1   0   0
+s8    0   0   0   0   0
+s9    1   0   1   1   0
+s10   0   1   0   1   0
+s11   0   1   0   1   1
+s12   0   1   1   1   1
+s13   0   0   0   0   1
+s14   0   1   0   0   0
+s15   1   0   0   0   0
+s16   1   1   1   1   0
+s17   1   1   0   0   0
+s18   0   1   1   0   1
+s19   0   0   1   0   0
+s20   1   1   0   0   0
+s21   1   0   0   1   1
+s22   1   0   1   0   0
+s23   1   1   1   0   1
+s24   1   0   1   0   0
+s25   0   0   0   1   0
+s26   1   0   1   0   1
+s27   0   1   0   1   0
+s28   1   1   1   1   0
+s29   1   0   0   1   1
+s30   0   1   0   1   1
+s31   0   1   1   0   1
+s32   0   1   0   1   1
+s33   0   0   0   1   0
+s34   1   1   1   1   0
+s35   0   0   0   1   1
+s36   0   1   1   0   1
+s37   0   0   1   0   0
+s38   1   0   1   0   1
+s39   0   0   0   1   0
+s40   1   1   0   0   1
+s41   1   1   1   0   0
+s42   1   0   0   1   1
+s43   0   1   0   0   0
+s44   1   1   0   0   1
+s45   1   0   1   0   0
+s46   0   1   1   1   0
+s47   1   0   1   1   0
+s48   1   1   1   0   0
+s49   0   1   1   1   1
+s50   0   0   1   1   0
+s51   0   0   0   0   1
+s52   0   1   0   1   0
+s53   0   1   1   0   1
+s54   0   0   0   0   1
+s55   0   0   1   0   0
+s56   1   1   0   1   1
+s57   0   1   1   0   1
+s58   0   1   1   0   1
+s59   1   0   1   1   1
+s60   0   0   1   0   0
+s61   0   0   0   0   0
+s62   1   1   1   0   1
+s63   1   1   0   0   1
+s64   1   0   1   1   1
+s65   0   0   1   0   0
+s66   0   0   0   1   0
+s67   0   1   0   1   0
+s68   0   1   1   0   0
+s69   0   1   1   1   0
+s70   0   0   1   0   0
+s71   0   1   1   1   0
+s72   0   1   0   1   1
+s73   1   0   0   0   0
+s74   0   1   0   0   0
+s75   0   0   1   1   0
+s76   0   1   0   1   0
+s77   1   0   1   0   1
+s78   1   1   1   1   1
+s79   0   0   0   0   0
+s80   0   0   1   0   0
+s81   0   1   0   0   1
+s82   0   0   0   0   0
+s83   0   0   1   0   0
+> net[x] <- simPhyloNetwork(tt[[x]], qRate = q01[x], sProb = pSpec[x])
+Warning message:
+In net[x] <- simPhyloNetwork(tt[[x]], qRate = q01[x], sProb = pSpec[x]) :
+  number of items to replace is not a multiple of replacement length
+>     nets[[x]] <- simPhyloNetwork(tt[[x]], qRate = q01[x], sProb = pSpec[x])
+> foo <- function(par) {
++         q01 <- exp(par[1])
++         q10 <- exp(par[2])
++         pSpec <- exp(par[3])
++         fitPhyloNetwork(tt[[x]], net[[x]], c(q01[x], q10[x], pSpec[x]))
++     }
+> foo(log(c(q01[x], q10[x], pSpec[x])))
+Error in network[mm, mm] (from fitPhyloNetwork.R#13) : incorrect number of dimensions
+>         fitPhyloNetwork(tt[[x]], net[[x]], c(q01[x], q10[x], pSpec[x]))
+Error in network[mm, mm] (from fitPhyloNetwork.R#13) : incorrect number of dimensions
+>         fitPhyloNetwork(tt[[x]], nets[[x]], c(q01[x], q10[x], pSpec[x]))
+[1] 2.189536
+>     out <- optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6))
+  Nelder-Mead direct search function minimizer
+Error in network[mm, mm] (from fitPhyloNetwork.R#13) : incorrect number of dimensions
+> foo <- function(par) {
++         q01 <- exp(par[1])
++         q10 <- exp(par[2])
++         pSpec <- exp(par[3])
++         fitPhyloNetwork(tt[[x]], nets[[x]], c(q01[x], q10[x], pSpec[x]))
++     }
+>     out <- optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6))
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 2.079442
+  Scaled convergence tolerance is 3.09861e-08
+Stepsize computed as 0.069315
+BUILD              4 2.107254 2.053037
+  C-c C-c
+> sym.trans <- function(x) {
++     pSpec[x] <- runif(1, sProb[1], sProb[2])
++     q01[x] <- runif(1, qProb[1], qProb[2])
++     q10[x] <- q01[x]
++     lambda[x] <- runif(1, spProb[1], spProb[2])
++     ntaxa[x] <- round(runif(1, tProb[1], tProb[2]))
++
++
++     tt[[x]] <- sim.bdtree(b = lambda[x], d = 0, stop = "taxa", n = ntaxa[x])
++     tt[[x]] <- drop.tip(tt[[x]], paste0("s", ntaxa[x]))
++     nets[[x]] <- simPhyloNetwork(tt[[x]], qRate = q01[x], sProb = pSpec[x])
++
++
++     foo <- function(par) {
++         q01 <- exp(par[1])
++         q10 <- exp(par[2])
++         pSpec <- exp(par[3])
++         fitPhyloNetwork(tt[[x]], nets[[x]], c(q01[x], q10[x], pSpec[x]))
++     }
++
++     #foo(log(c(q01[x], q10[x], pSpec[x])))
++     out <- optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6))
++     res <- c(x, out$value, exp(out$par), q01[x], q10[x], pSpec[x])
++     #exp(out$par)
++ }
+> sym.trans(1)
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 510.812880
+  Scaled convergence tolerance is 7.61171e-06
+Stepsize computed as 0.069315
+BUILD              4 510.812880 508.336701
+EXTENSION          6 509.853089 505.144851
+EXTENSION          8 508.374599 502.781028
+EXTENSION         10 508.336701 500.133707
+EXTENSION         12 505.144851 493.319075
+LO-REDUCTION      14 502.781028 493.319075
+REFLECTION        16 500.133707 492.063897
+EXTENSION         18 494.003578 487.340891
+EXTENSION         20 493.319075 485.089832
+HI-REDUCTION      22 492.063897 485.089832
+REFLECTION        24 488.627115 484.649417
+HI-REDUCTION      26 487.340891 484.649417
+EXTENSION         28 485.872513 479.699161
+LO-REDUCTION      30 485.089832 479.699161
+LO-REDUCTION      32 484.649417 479.699161
+EXTENSION         34 482.508077 475.549010
+EXTENSION         36 481.916110 474.397874
+EXTENSION         38 479.699161 473.965134
+LO-REDUCTION      40 475.549010 473.965134
+LO-REDUCTION      42 474.397874 473.883672
+LO-REDUCTION      44 474.220721 473.842500
+HI-REDUCTION      46 473.965134 473.842500
+HI-REDUCTION      48 473.883672 473.830467
+HI-REDUCTION      50 473.875786 473.827410
+HI-REDUCTION      52 473.842500 473.817543
+LO-REDUCTION      54 473.830467 473.817005
+HI-REDUCTION      56 473.827410 473.810492
+LO-REDUCTION      58 473.817543 473.810492
+LO-REDUCTION      60 473.817005 473.810492
+HI-REDUCTION      62 473.814843 473.810492
+LO-REDUCTION      64 473.812057 473.809732
+HI-REDUCTION      66 473.811010 473.809732
+LO-REDUCTION      68 473.810492 473.809732
+LO-REDUCTION      70 473.810170 473.809732
+HI-REDUCTION      72 473.809896 473.809714
+HI-REDUCTION      74 473.809760 473.809670
+HI-REDUCTION      76 473.809732 473.809648
+HI-REDUCTION      78 473.809714 473.809647
+HI-REDUCTION      80 473.809670 473.809644
+HI-REDUCTION      82 473.809648 473.809635
+HI-REDUCTION      84 473.809647 473.809632
+HI-REDUCTION      86 473.809644 473.809632
+Exiting from Nelder Mead minimizer
+    88 function evaluations used
+> sym.trans <- function(x) {
++     pSpec[x] <- runif(1, sProb[1], sProb[2])
++     q01[x] <- runif(1, qProb[1], qProb[2])
++     q10[x] <- q01[x]
++     lambda[x] <- runif(1, spProb[1], spProb[2])
++     ntaxa[x] <- round(runif(1, tProb[1], tProb[2]))
++
++
++     tt[[x]] <- sim.bdtree(b = lambda[x], d = 0, stop = "taxa", n = ntaxa[x])
++     tt[[x]] <- drop.tip(tt[[x]], paste0("s", ntaxa[x]))
++     nets[[x]] <- simPhyloNetwork(tt[[x]], qRate = q01[x], sProb = pSpec[x])
++
++
++     foo <- function(par) {
++         q01 <- exp(par[1])
++         q10 <- exp(par[2])
++         pSpec <- exp(par[3])
++         fitPhyloNetwork(tt[[x]], nets[[x]], c(q01[x], q10[x], pSpec[x]))
++     }
++
++     #foo(log(c(q01[x], q10[x], pSpec[x])))
++     out <- optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6))
++     res <- c(x, out$value, exp(out$par), q01[x], q10[x], pSpec[x])
++     return(res)
++ }
+> sym.trans(1)
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 8.465464
+  Scaled convergence tolerance is 1.26145e-07
+Stepsize computed as 0.069315
+BUILD              4 8.503390 7.826826
+LO-REDUCTION       6 8.465464 7.826826
+EXTENSION          8 8.437858 7.334512
+EXTENSION         10 7.988164 6.292663
+LO-REDUCTION      12 7.826826 6.292663
+EXTENSION         14 7.334512 4.474284
+EXTENSION         16 6.317620 3.153755
+LO-REDUCTION      18 6.292663 3.153755
+LO-REDUCTION      20 4.474284 3.153755
+LO-REDUCTION      22 3.243771 3.153755
+HI-REDUCTION      24 3.234777 3.153755
+HI-REDUCTION      26 3.224851 3.153755
+HI-REDUCTION      28 3.218837 3.153755
+HI-REDUCTION      30 3.212981 3.153755
+HI-REDUCTION      32 3.209052 3.153755
+LO-REDUCTION      34 3.205509 3.153755
+HI-REDUCTION      36 3.189064 3.153755
+EXTENSION         38 3.179984 3.121461
+LO-REDUCTION      40 3.174020 3.121461
+EXTENSION         42 3.153755 3.043792
+EXTENSION         44 3.134728 2.986090
+EXTENSION         46 3.121461 2.950496
+REFLECTION        48 3.043792 2.942081
+LO-REDUCTION      50 2.986090 2.941932
+LO-REDUCTION      52 2.950496 2.941932
+HI-REDUCTION      54 2.949182 2.941932
+LO-REDUCTION      56 2.942359 2.941932
+HI-REDUCTION      58 2.942081 2.941511
+HI-REDUCTION      60 2.942020 2.941500
+HI-REDUCTION      62 2.941932 2.941436
+HI-REDUCTION      64 2.941511 2.941436
+HI-REDUCTION      66 2.941500 2.941383
+LO-REDUCTION      68 2.941457 2.941379
+HI-REDUCTION      70 2.941436 2.941352
+LO-REDUCTION      72 2.941383 2.941350
+EXTENSION         74 2.941379 2.941315
+HI-REDUCTION      76 2.941352 2.941315
+EXTENSION         78 2.941350 2.941293
+EXTENSION         80 2.941340 2.941225
+EXTENSION         82 2.941315 2.941169
+EXTENSION         84 2.941293 2.941092
+EXTENSION         86 2.941225 2.940856
+EXTENSION         88 2.941169 2.940625
+EXTENSION         90 2.941092 2.940365
+EXTENSION         92 2.940856 2.939693
+EXTENSION         94 2.940625 2.938928
+EXTENSION         96 2.940365 2.938044
+EXTENSION         98 2.939693 2.936335
+EXTENSION        100 2.938928 2.935351
+EXTENSION        102 2.938044 2.933493
+EXTENSION        104 2.936335 2.931363
+LO-REDUCTION     106 2.935351 2.931363
+LO-REDUCTION     108 2.933493 2.931363
+LO-REDUCTION     110 2.933197 2.931363
+EXTENSION        112 2.931599 2.929504
+LO-REDUCTION     114 2.931561 2.929504
+REFLECTION       116 2.931363 2.929297
+EXTENSION        118 2.929653 2.928618
+LO-REDUCTION     120 2.929504 2.928618
+HI-REDUCTION     122 2.929297 2.928618
+EXTENSION        124 2.928890 2.928567
+LO-REDUCTION     126 2.928700 2.928567
+REFLECTION       128 2.928667 2.928566
+LO-REDUCTION     130 2.928618 2.928566
+LO-REDUCTION     132 2.928578 2.928566
+LO-REDUCTION     134 2.928575 2.928565
+HI-REDUCTION     136 2.928568 2.928565
+HI-REDUCTION     138 2.928567 2.928565
+LO-REDUCTION     140 2.928566 2.928565
+HI-REDUCTION     142 2.928566 2.928565
+HI-REDUCTION     144 2.928565 2.928565
+REFLECTION       146 2.928565 2.928565
+LO-REDUCTION     148 2.928565 2.928565
+Exiting from Nelder Mead minimizer
+    150 function evaluations used
+[1] 1.000000e+00 2.928565e+00 3.118902e-06 7.159291e-01 1.034861e+08
+[6] 8.400873e-01 8.400873e-01 1.663356e+00
+> registerDoMC(2)
+> test <- as.list(1:2)
+> result <- ldply(test, sym.trans, .parallel = TRUE)
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 8.317766
+  Scaled convergence tolerance is 1.23944e-07
+Stepsize computed as 0.069315
+BUILD              4 8.319919 8.207867
+LO-REDUCTION       6 8.317766 8.207867
+EXTENSION          8 8.315622 8.163095
+REFLECTION        10 8.236060 8.151756
+LO-REDUCTION      12 8.207867 8.151756
+LO-REDUCTION      14 8.163095 8.151756
+HI-REDUCTION      16 8.154172 8.151756
+HI-REDUCTION      18 8.154113 8.151683
+LO-REDUCTION      20 8.152675 8.151683
+HI-REDUCTION      22 8.152181 8.151683
+LO-REDUCTION      24 8.151924 8.151683
+REFLECTION        26 8.151756 8.151495
+REFLECTION        28 8.151687 8.151440
+HI-REDUCTION      30 8.151683 8.151440
+EXTENSION         32 8.151511 8.151169
+LO-REDUCTION      34 8.151495 8.151169
+EXTENSION         36 8.151440 8.150680
+EXTENSION         38 8.151197 8.150513
+LO-REDUCTION      40 8.151169 8.150513
+EXTENSION         42 8.150686 8.149440
+LO-REDUCTION      44 8.150680 8.149440
+LO-REDUCTION      46 8.150513 8.149440
+EXTENSION         48 8.149622 8.147040
+LO-REDUCTION      50 8.149455 8.147040
+EXTENSION         52 8.149440 8.145078
+EXTENSION         54 8.148102 8.139374
+LO-REDUCTION      56 8.147040 8.139374
+EXTENSION         58 8.145078 8.121869
+EXTENSION         60 8.139391 8.100594
+REFLECTION        62 8.139374 8.097513
+HI-REDUCTION      64 8.124594 8.097513
+LO-REDUCTION      66 8.121869 8.097513
+HI-REDUCTION      68 8.109401 8.097513
+LO-REDUCTION      70 8.100594 8.097513
+EXTENSION         72 8.100002 8.095781
+EXTENSION         74 8.098500 8.092715
+EXTENSION         76 8.097513 8.084743
+HI-REDUCTION      78 8.095781 8.084743
+EXTENSION         80 8.092877 8.079156
+EXTENSION         82 8.092715 8.073534
+EXTENSION         84 8.084743 8.062498
+EXTENSION         86 8.079156 8.039151
+REFLECTION        88 8.073534 8.035290
+LO-REDUCTION      90 8.062498 8.035290
+REFLECTION        92 8.039151 8.020355
+EXTENSION         94 8.035830 8.003031
+HI-REDUCTION      96 8.035290 8.003031
+REFLECTION        98 8.020355 7.993988
+EXTENSION        100 8.017561 7.981122
+LO-REDUCTION     102 8.003031 7.981122
+EXTENSION        104 7.993988 7.954083
+LO-REDUCTION     106 7.986926 7.954083
+HI-REDUCTION     108 7.981122 7.954083
+REFLECTION       110 7.965854 7.944921
+EXTENSION        112 7.958500 7.927963
+LO-REDUCTION     114 7.954083 7.927963
+LO-REDUCTION     116 7.944921 7.927451
+EXTENSION        118 7.933475 7.910541
+EXTENSION        120 7.927963 7.902380
+LO-REDUCTION     122 7.927451 7.902380
+EXTENSION        124 7.910541 7.890255
+HI-REDUCTION     126 7.903465 7.890255
+LO-REDUCTION     128 7.902380 7.890255
+REFLECTION       130 7.900110 7.887288
+HI-REDUCTION     132 7.893262 7.887288
+HI-REDUCTION     134 7.891228 7.887288
+HI-REDUCTION     136 7.890255 7.887288
+HI-REDUCTION     138 7.887756 7.887027
+HI-REDUCTION     140 7.887488 7.886378
+HI-REDUCTION     142 7.887288 7.886378
+HI-REDUCTION     144 7.887027 7.886373
+LO-REDUCTION     146 7.886502 7.886177
+EXTENSION        148 7.886378 7.885223
+LO-REDUCTION     150 7.886373 7.885223
+LO-REDUCTION     152 7.886177 7.885223
+REFLECTION       154 7.885712 7.885067
+EXTENSION        156 7.885494 7.884697
+EXTENSION        158 7.885223 7.884072
+EXTENSION        160 7.885067 7.882934
+EXTENSION        162 7.884697 7.881801
+LO-REDUCTION     164 7.884072 7.881801
+EXTENSION        166 7.882934 7.879817
+LO-REDUCTION     168 7.882247 7.879817
+HI-REDUCTION     170 7.881801 7.879817
+EXTENSION        172 7.880897 7.877675
+LO-REDUCTION     174 7.880101 7.877675
+EXTENSION        176 7.879817 7.876356
+REFLECTION       178 7.878122 7.875785
+LO-REDUCTION     180 7.877675 7.875785
+LO-REDUCTION     182 7.876751 7.875785
+EXTENSION        184 7.876356 7.875095
+LO-REDUCTION     186 7.876336 7.875095
+REFLECTION       188 7.875785 7.874827
+EXTENSION        190 7.875303 7.873902
+LO-REDUCTION     192 7.875095 7.873902
+LO-REDUCTION     194 7.874827 7.873902
+EXTENSION        196 7.874650 7.873428
+EXTENSION        198 7.874025 7.872943
+LO-REDUCTION     200 7.873902 7.872943
+REFLECTION       202 7.873428 7.872773
+HI-REDUCTION     204 7.872996 7.872773
+EXTENSION        206 7.872943 7.872664
+LO-REDUCTION     208 7.872933 7.872662
+REFLECTION       210 7.872773 7.872596
+LO-REDUCTION     212 7.872664 7.872596
+REFLECTION       214 7.872662 7.872550
+LO-REDUCTION     216 7.872618 7.872540
+HI-REDUCTION     218 7.872596 7.872540
+LO-REDUCTION     220 7.872550 7.872534
+REFLECTION       222 7.872550 7.872530
+REFLECTION       224 7.872540 7.872519
+HI-REDUCTION     226 7.872534 7.872519
+REFLECTION       228 7.872530 7.872518
+HI-REDUCTION     230 7.872528 7.872518
+EXTENSION        232 7.872521 7.872502
+LO-REDUCTION     234 7.872519 7.872502
+EXTENSION        236 7.872518 7.872495
+EXTENSION        238 7.872511 7.872480
+EXTENSION        240 7.872502 7.872473
+EXTENSION        242 7.872495 7.872461
+LO-REDUCTION     244 7.872480 7.872461
+LO-REDUCTION     246 7.872473 7.872461
+EXTENSION        248 7.872465 7.872457
+LO-REDUCTION     250 7.872465 7.872457
+REFLECTION       252 7.872461 7.872455
+EXTENSION        254 7.872457 7.872454
+LO-REDUCTION     256 7.872457 7.872454
+LO-REDUCTION     258 7.872455 7.872454
+REFLECTION       260 7.872455 7.872454
+LO-REDUCTION     262 7.872454 7.872454
+LO-REDUCTION     264 7.872454 7.872454
+LO-REDUCTION     266 7.872454 7.872454
+Exiting from Nelder Mead minimizer
+    268 function evaluations used
+Error in do.ply(i) :
+  task 2 failed - "missing value where TRUE/FALSE needed"
+> result
+Error: object 'result' not found
+> getwd()
+[1] "/Users/gburin/Dropbox/netphy"
+>
