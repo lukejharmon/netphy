@@ -45,7 +45,7 @@ sym.trans <- function(pars) {
     }
 
     #foo(log(c(q01[x], q10[x], pSpec[x])))
-    out <- optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6))
+    out <- tryCatch(optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6)), error = function(x) return(data,frame(q01.fit = NA, q10.fit = NA, pSpec.fit = NA, llik.fit = NA)))
     res <- c(exp(out$par), out$value)
     names(res) <- c("q01.fit", "q10.fit", "pSpec.fit", "llik.fit")
     return(res)
