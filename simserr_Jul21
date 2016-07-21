@@ -1,0 +1,316 @@
+
+R version 3.2.3 (2015-12-10) -- "Wooden Christmas-Tree"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> library(geiger)
+Loading required package: ape
+> library(plyr)
+> library(doMC)
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+> library(foreach)
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:plyr’:
+
+    arrange, count, desc, failwith, id, mutate, rename, summarise,
+    summarize
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> lapply(paste0("./R/",as.list(list.files("./R/"))), source)
+[[1]]
+[[1]]$value
+function (tip.like, bl, q) 
+{
+    nb.states <- length(tip.like)
+    r <- rep(0, nb.states)
+    p <- MatrixExp.eig(q * bl)
+    for (i in 1:nb.states) r[i] <- logspace_sum(log(p[i, ]) + 
+        tip.like)
+    return(r)
+}
+
+[[1]]$visible
+[1] FALSE
+
+
+[[2]]
+[[2]]$value
+function (phy, network, pars) 
+{
+    if (sum(phy$edge.length == 0) > 0) 
+        cat("Function probably will not work when tree has zero-length branches\n\n")
+    mm <- match(phy$tip.label, rownames(network))
+    network <- network[mm, mm]
+    nNodes <- max(phy$edge)
+    nTips <- length(phy$tip.label)
+    lik <- list()
+    q01 <- pars[1]
+    q10 <- pars[2]
+    pSpec <- pars[3]
+    if (pSpec > 1) 
+        pSpec <- 1
+    qMatrix <- rbind(c(-q01, q01), c(q10, -q10))
+    for (i in 1:nTips) {
+        theTip <- phy$tip.label[i]
+        theRow <- which(rownames(network) == theTip)
+        interact <- network[theRow, ]
+        rr <- matrix(nrow = nTips, ncol = 2)
+        rownames(rr) <- phy$tip.label
+        colnames(rr) <- c(0, 1)
+        for (j in 1:nTips) if (interact[j] == 0) 
+            rr[j, ] <- c(0, -Inf)
+        else rr[j, ] <- c(-Inf, 0)
+        lik[[i]] <- rr
+        names(lik)[i] <- theTip
+    }
+    currTree <- phy
+    cumlnL <- 0
+    while (1) {
+        bt <- branching.times(currTree)
+        recentNode <- names(bt)[which(bt == min(bt))][1]
+        daughter <- tips(currTree, as.numeric(recentNode))
+        timeInterval <- bt[recentNode]
+        d1 <- which(names(lik) == daughter[1])
+        d1L <- lik[[d1]]
+        d2 <- which(names(lik) == daughter[2])
+        d2L <- lik[[d2]]
+        dCon <- d1L[daughter[2], ]
+        dNode <- branchLike(dCon, timeInterval, qMatrix)
+        dd <- dNode + log(c(1 - pSpec, pSpec))
+        cumlnL <- cumlnL + -logspace_sum(dd)
+        if (length(currTree$tip.label) == 2) 
+            break
+        currTree <- drop.tip(currTree, daughter[1])
+        oldLik <- lik
+        lik <- list()
+        nn <- length(currTree$tip.label)
+        for (i in 1:nn) {
+            theTip <- currTree$tip.label[i]
+            rr <- matrix(nrow = nn, ncol = 2)
+            rownames(rr) <- currTree$tip.label
+            colnames(rr) <- c(0, 1)
+            if (theTip %in% daughter) {
+                xx <- which(names(oldLik) == daughter[1])
+                ol1 <- oldLik[[xx]]
+                xx <- which(names(oldLik) == daughter[2])
+                ol2 <- oldLik[[xx]]
+                for (j in 1:nrow(ol1)) {
+                  if (rownames(ol1)[j] != daughter[1]) {
+                    l1 <- branchLike(ol1[j, ], timeInterval, 
+                      qMatrix)
+                    l2 <- branchLike(ol2[j, ], timeInterval, 
+                      qMatrix)
+                    rr[rownames(ol1)[j], ] <- l1 + l2
+                  }
+                }
+            }
+            else {
+                xx <- which(names(oldLik) == theTip)
+                theOldLik <- oldLik[[xx]]
+                lMerg <- theOldLik[daughter, ]
+                l1 <- branchLike(lMerg[1, ], timeInterval, qMatrix)
+                l2 <- branchLike(lMerg[2, ], timeInterval, qMatrix)
+                rr[daughter[2], ] <- l1 + l2
+                theRest <- rownames(rr)[which(!(rownames(rr) %in% 
+                  daughter))]
+                for (tt in theRest) {
+                  lold <- theOldLik[tt, ]
+                  lnew <- branchLike(lold, timeInterval, qMatrix)
+                  rr[tt, ] <- lnew
+                }
+            }
+            rr[theTip, ] <- c(0, -Inf)
+            lik[[i]] <- rr
+            names(lik)[i] <- theTip
+            nEdge <- which(currTree$edge[, 2] == i)
+            currTree$edge.length[nEdge] <- currTree$edge.length[nEdge] - 
+                timeInterval
+        }
+        if (length(lik) == 80) 
+            break
+    }
+    return(cumlnL)
+}
+
+[[2]]$visible
+[1] FALSE
+
+
+[[3]]
+[[3]]$value
+function (tip.like, bl, q) 
+{
+    nb.states <- length(tip.like)
+    r <- rep(0, nb.states)
+    p <- MatrixExp.eig(q * bl)
+    for (i in 1:nb.states) r[i] <- logspace_sum(log(p[i, ]) + 
+        tip.like)
+    return(r)
+}
+
+[[3]]$visible
+[1] FALSE
+
+
+[[4]]
+[[4]]$value
+function (logx, logy) 
+{
+    if (logx == -Inf) 
+        return(logy)
+    else max(logx, logy) + log1p(exp(-abs(logx - logy)))
+}
+
+[[4]]$visible
+[1] FALSE
+
+
+[[5]]
+[[5]]$value
+function (logx) 
+{
+    r <- logx[1]
+    if (length(logx) > 1) 
+        for (i in 2:length(logx)) r <- logspace_add(r, logx[i])
+    r
+}
+
+[[5]]$visible
+[1] FALSE
+
+
+[[6]]
+[[6]]$value
+function (Q) 
+{
+    tmp <- eigen(Q, symmetric = FALSE)
+    P1 <- tmp$vectors %*% diag(exp(tmp$values)) %*% solve(tmp$vectors)
+    return(P1)
+}
+
+[[6]]$visible
+[1] FALSE
+
+
+[[7]]
+[[7]]$value
+function (phy, qRate, sProb) 
+{
+    bt <- sort(branching.times(phy), decr = T)
+    nb <- dim(phy$edge)[1]
+    interactionMatrix <- matrix(nrow = nb, ncol = nb)
+    interactionMatrix[] <- 0
+    currentEdges <- numeric()
+    rootNumber <- as.numeric(names(bt)[1])
+    qMatrix <- rbind(c(-1, 1), c(1, -1)) * qRate
+    for (i in 1:length(bt)) {
+        thisEdge <- as.numeric(names(bt)[i])
+        ancestorRow <- which(phy$edge[, 2] == thisEdge)
+        descendantRow <- which(phy$edge[, 1] == thisEdge)
+        if (length(ancestorRow) == 0) {
+            r <- runif(1)
+            if (r < sProb) {
+                interactionMatrix[descendantRow, descendantRow] <- 1
+                diag(interactionMatrix) <- 0
+            }
+            currentEdges <- c(currentEdges, descendantRow)
+        }
+        else {
+            timeSpan <- bt[i - 1] - bt[i]
+            tProb <- MatrixExp.eig(qMatrix * timeSpan)
+            cn <- length(currentEdges)
+            for (j in 1:(cn - 1)) for (k in (j + 1):cn) {
+                e1 <- currentEdges[j]
+                e2 <- currentEdges[k]
+                currState <- interactionMatrix[e1, e2]
+                p0 <- tProb[currState + 1, 1]
+                r <- runif(1)
+                if (r < p0) {
+                  interactionMatrix[e1, e2] <- 0
+                  interactionMatrix[e2, e1] <- 0
+                }
+                else {
+                  interactionMatrix[e1, e2] <- 1
+                  interactionMatrix[e2, e1] <- 1
+                }
+            }
+            toCut <- which(currentEdges == ancestorRow)
+            currentEdges <- currentEdges[-toCut]
+            currentEdges <- c(currentEdges, descendantRow)
+            for (j in 1:length(descendantRow)) {
+                interactionMatrix[, descendantRow[j]] <- interactionMatrix[, 
+                  ancestorRow]
+                interactionMatrix[descendantRow[j], ] <- interactionMatrix[ancestorRow, 
+                  ]
+                diag(interactionMatrix) <- 0
+            }
+            r <- runif(1)
+            if (r < sProb) {
+                interactionMatrix[descendantRow, descendantRow] <- 1
+            }
+        }
+    }
+    nTaxa <- length(phy$tip.label)
+    tips <- which(phy$edge[, 2] <= nTaxa)
+    oo <- phy$edge[tips, 2]
+    res <- interactionMatrix[tips, tips]
+    rownames(res) <- phy$tip.label[oo]
+    colnames(res) <- phy$tip.label[oo]
+    return(res)
+}
+
+[[7]]$visible
+[1] FALSE
+
+
+> 
+> sProb <- c(0,2)  # pSpec = probability of speciation within the network
+> qProb <- c(0,1)  # transition probability between interacting and not-interacting
+> tProb <- c(10,100)  # total number of taxa in the tree
+> spProb <- c(0,2)  # lambda for tree simulation
+> 
+> ##### Symmetrical transitions
+> 
+> ## tree.num <- 1:1000
+> ## pSpec <- runif(1000, sProb[1], sProb[2])
+> ## q01 <- runif(1000, qProb[1], qProb[2])
+> ## lambda <- runif(1000, spProb[1], spProb[2])
+> ## ntaxa <- round(runif(1000, tProb[1], tProb[2]))
+> ## trees <- as.list(rep(NA, 1000))
+> ## nets <- as.list(rep(NA, 1000))
+> 
+> ## inputData <- data.frame(tree.num = tree.num, q01.sim = q01, q10.sim = q01, pSpec.sim = pSpec, lambda.sim = lambda, ntaxa = ntaxa)
+> 
+> ## write.table(inputData, "./inputData.csv", quote = FALSE, row.names = FALSE, col.names = TRUE, sep = ",")
+> inputData <- read.csv("./inputData.csv")
+> 
+> registerDoMC(56)
+> :dim(inputData)[1]
+Error: unexpected ':' in ":"
+Execution halted

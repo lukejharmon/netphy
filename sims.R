@@ -26,11 +26,11 @@ spProb <- c(0,2)  # lambda for tree simulation
 inputData <- read.csv("./inputData.csv")
 
 registerDoMC(56)
-:dim(inputData)[1]
+
 
 cat(c("tree.number", "q01.sim", "q10.sim", "pSpec.sim", "lambda.sim", "ntaxa.sim", "q01.fit", "q10.fit", "pSpec.fit", "llik.fit"), "\n", append = FALSE, file = "results_symtrans.txt", sep = "\t")
 
-result.symtrans <- foreach(i = c(7,11)) %dopar% {
+result.symtrans <- foreach(i = 1:dim(inputData)[1]) %dopar% {
     n <- inputData$tree.num[i]
     q01 <- inputData$q01.sim[i]
     q10 <- inputData$q10.sim[i]
