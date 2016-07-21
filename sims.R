@@ -1,6 +1,8 @@
 library(geiger)
 library(plyr)
 library(doMC)
+library(foreach)
+library(dplyr)
 lapply(paste0("./R/",as.list(list.files("./R/"))), source)
 
 sProb <- c(0,2)  # pSpec = probability of speciation within the network
@@ -23,13 +25,18 @@ spProb <- c(0,2)  # lambda for tree simulation
 ## write.table(inputData, "./inputData.csv", quote = FALSE, row.names = FALSE, col.names = TRUE, sep = ",")
 inputData <- read.csv("./inputData.csv")
 
-sym.trans <- function(pars) {
-    n <- pars[, 1]
-    q01 <- pars[, 2]
-    q10 <- pars[, 3]
-    pSpec <- pars[, 4]
-    lambda <- pars[, 5]
-    ntaxa <- pars[, 6]
+registerDoMC(56)
+:dim(inputData)[1]
+
+cat(c("tree.number", "q01.sim", "q10.sim", "pSpec.sim", "lambda.sim", "ntaxa.sim", "q01.fit", "q10.fit", "pSpec.fit", "llik.fit"), "\n", append = FALSE, file = "results_symtrans.txt", sep = "\t")
+
+result.symtrans <- foreach(i = c(7,11)) %dopar% {
+    n <- inputData$tree.num[i]
+    q01 <- inputData$q01.sim[i]
+    q10 <- inputData$q10.sim[i]
+    pSpec <- inputData$pSpec.sim[i]
+    lambda <- inputData$lambda.sim[i]
+    ntaxa <- inputData$ntaxa[i]
 
     tt <- sim.bdtree(b = lambda, d = 0, stop = "taxa", n = ntaxa)
     tt <- drop.tip(tt, paste0("s", ntaxa))
@@ -46,14 +53,16 @@ sym.trans <- function(pars) {
 
     #foo(log(c(q01[x], q10[x], pSpec[x])))
     out <- tryCatch(optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6)), error = function(x) return(data,frame(q01.fit = NA, q10.fit = NA, pSpec.fit = NA, llik.fit = NA)))
-    res <- c(exp(out$par), out$value)
-    names(res) <- c("q01.fit", "q10.fit", "pSpec.fit", "llik.fit")
-    return(res)
+    data.frame(n, q01, q10, pSpec, lambda, ntaxa, exp(out$par[1]), exp(out$par[2]), exp(out$par[3]), out$value)
+    cat(sprintf("%s\t", c(n, q01, q10, pSpec, lambda, ntaxa, exp(out$par[1]), exp(out$par[2]), exp(out$par[3]), out$value)), "\n", file = "./results_symtrans.txt", append = TRUE)
+    #names(res) <- c("q01.fit", "q10.fit", "pSpec.fit", "llik.fit")
+    #return(res)
 }
 
-registerDoMC(50)
-result.symtrans <- adply(.data = inputData, .margins = 1, .fun = sym.trans, .parallel = TRUE)
-write.table(result.symtrans, "./results_symtrans.csv", quote = FALSE, sep = ",", row.names = FALSE, col.names = TRUE)
+#result.symtrans <- adply(.data = inputData, .margins = 1, .fun = sym.trans, .parallel = TRUE)
+#results.symtrans <- bind_rows(result.symtrans)
+#names(results.symtrans) <- c("tree.number", "q01.sim", "q10.sim", "pSpec.sim", "lambda.sim", "ntaxa.sim", "q01.fit", "q10.fit", "pSpec.fit", "llik.fit")
+#write.table(result.symtrans, "./results_symtrans.csv", quote = FALSE, sep = ",", row.names = FALSE, col.names = TRUE)
 
 ##### Asymmetrical transitions
 
