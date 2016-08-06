@@ -23,8 +23,8 @@ geometry: margin=1in
 
 ```{r echo = FALSE, warning = FALSE, message = FALSE}
 source("figs.R")
-caption.fig1 <- "A - Fitted q01 by Simulated q01; B - Standardized (Fitted q01 - Simulated q01) by Number of Taxa; C - Fitted q10 by Simulated q10; D - Standardized (Fitted q01 - Simulated q01) by Number of Taxa; E - Fitted pSpec by Simulated pSpec; F - Standardized (Fitted pSpec - Simulated pSpec) by Number of Taxa"
-caption.fig2 <- "A - Fitted q01 by Simulated q01; B - Standardized (Fitted q01 - Simulated q01) by Number of Taxa; C - Fitted q10 by Simulated q10; D - Standardized (Fitted q01 - Simulated q01) by Number of Taxa; E - Fitted pSpec by Simulated pSpec; F - Standardized (Fitted pSpec - Simulated pSpec) by Number of Taxa"
+caption.fig1 <- "A - Fitted q01 by Simulated q01; B - Standardized (Fitted q01 - Simulated q01) by Number of Taxa (values above 0 indicate overestimation, and below 0 indicate underestimation); C - Fitted q10 by Simulated q10; D - Standardized (Fitted q01 - Simulated q01) by Number of Taxa (values above 0 indicate overestimation, and below 0 indicate underestimation); E - Fitted pSpec by Simulated pSpec; F - Standardized (Fitted pSpec - Simulated pSpec) by Number of Taxa (values above 0 indicate overestimation, and below 0 indicate underestimation)"
+caption.fig2 <- "A - Fitted q01 by Simulated q01; B - Standardized (Fitted q01 - Simulated q01) by Number of Taxa (values above 0 indicate overestimation, and below 0 indicate underestimation); C - Fitted q10 by Simulated q10; D - Standardized (Fitted q01 - Simulated q01) by Number of Taxa (values above 0 indicate overestimation, and below 0 indicate underestimation); E - Fitted pSpec by Simulated pSpec; F - Standardized (Fitted pSpec - Simulated pSpec) by Number of Taxa (values above 0 indicate overestimation, and below 0 indicate underestimation)"
 ```
 
 
