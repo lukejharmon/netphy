@@ -1,0 +1,64 @@
+---
+title: "Can we detect decline in diversity using molecular
+phylogenies?"
+date: "July 15, 2015"
+output:
+  pdf_document:
+    fig_caption: true
+    latex_engine: xelatex
+    keep_tex: true
+    toc: false
+  word_document:
+    keep_md: false
+header-includes:
+   - \usepackage{setspace}
+   - \usepackage{lineno}
+   - \usepackage[font=scriptsize,labelfont=bf]{caption}
+   - \usepackage{indentfirst}
+bibliography: refs.bib
+csl: systematic-biology.csl
+fontsize: 12pt
+geometry: margin=1in
+---
+\doublespacing
+\linenumbers
+\pagenumbering{gobble}
+\setlength{\parindent}{1.0cm}
+\raggedright
+
+```{r echo = FALSE, warning = FALSE, message = FALSE}
+source("figs.R")
+caption.fig1 <- "A - Fitted q01 by Simulated q01; B - Standardized (Fitted q01 - Simulated q01) by Number of Taxa; C - Fitted q10 by Simulated q10; D - Standardized (Fitted q01 - Simulated q01) by Number of Taxa"
+```
+
+
+# Symmetrical transition rates
+Simulation parameters:
+```{r eval = FALSE}
+pSpec <- runif(n = 1000, min = 0, max = 2)
+q01 <- runif(n = 1000, min = 0, max = 1)
+q10 <- q01
+ntaxa <- runif(n = 1000, min = 10, max = 100)
+lambda <- runif(n = 1000, min = 0, max = 2)
+```
+
+```{r echo = FALSE, fig.cap = caption.fig1}
+p1 <-
+    plot_grid(q01.sym + theme(legend.position = "none"),
+          q01.sym.bytreesize + theme(legend.position = "none"),
+          q10.sym + theme(legend.position = "none"),
+          q10.sym.bytreesize + theme(legend.position = "none"),
+          ncol = 2,
+          align = 'hv',
+          labels = LETTERS[1:4])
+
+p2 <- plot_grid(
+    p1,
+    legend.sym,
+    nrow = 2,
+    rel_heights = c(0.9, 0.1)
+)
+
+p2
+```
+
