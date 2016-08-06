@@ -5,12 +5,12 @@ library(foreach)
 library(dplyr)
 lapply(paste0("./R/",as.list(list.files("./R/"))), source)
 
-sProb <- c(0,2)  # pSpec = probability of speciation within the network
-qProb <- c(0,1)  # transition probability between interacting and not-interacting
-tProb <- c(10,100)  # total number of taxa in the tree
-spProb <- c(0,2)  # lambda for tree simulation
+## sProb <- c(0,2)  # pSpec = probability of speciation within the network
+## qProb <- c(0,1)  # transition probability between interacting and not-interacting
+## tProb <- c(10,100)  # total number of taxa in the tree
+## spProb <- c(0,2)  # lambda for tree simulation
 
-##### Symmetrical transitions
+## ##### Symmetrical transitions
 
 ## ## tree.num <- 1:1000
 ## ## pSpec <- runif(1000, sProb[1], sProb[2])
@@ -56,27 +56,27 @@ spProb <- c(0,2)  # lambda for tree simulation
 ##     cat(sprintf("%s\t", c(n, q01, q10, pSpec, lambda, ntaxa, exp(out$par[1]), exp(out$par[2]), exp(out$par[3]), out$value)), "\n", file = "./results_symtrans.txt", append = TRUE)
 ## }
 
-## result.symtrans <- adply(.data = inputData, .margins = 1, .fun = sym.trans, .parallel = TRUE)
-## results.symtrans <- bind_rows(result.symtrans)
-## names(results.symtrans) <- c("tree.number", "q01.sim", "q10.sim", "pSpec.sim", "lambda.sim", "ntaxa.sim", "q01.fit", "q10.fit", "pSpec.fit", "llik.fit")
-## write.table(result.symtrans, "./results_symtrans.csv", quote = FALSE, sep = ",", row.names = FALSE, col.names = TRUE)
 
 ##### Asymmetrical transitions
 
-tree.num <- 1:1000
-pSpec <- runif(1000, sProb[1], sProb[2])
-q01 <- runif(1000, qProb[1], qProb[2])
-q10 <- runif(1000, qProb[1], qProb[2])
-lambda <- runif(1000, spProb[1], spProb[2])
-ntaxa <- round(runif(1000, tProb[1], tProb[2]))
-trees <- as.list(rep(NA, 1000))
-nets <- as.list(rep(NA, 1000))
+## tree.num <- 1:1000
+## pSpec <- runif(1000, sProb[1], sProb[2])
+## q01 <- runif(1000, qProb[1], qProb[2])
+## q10 <- runif(1000, qProb[1], qProb[2])
+## lambda <- runif(1000, spProb[1], spProb[2])
+## ntaxa <- round(runif(1000, tProb[1], tProb[2]))
+## trees <- as.list(rep(NA, 1000))
+## nets <- as.list(rep(NA, 1000))
 
-inputDataAsym <- data.frame(tree.num = tree.num, q01.sim = q01, q10.sim = q10, pSpec.sim = pSpec, lambda.sim = lambda, ntaxa = ntaxa)
+## inputDataAsym <- data.frame(tree.num = tree.num, q01.sim = q01, q10.sim = q10, pSpec.sim = pSpec, lambda.sim = lambda, ntaxa = ntaxa)
 
-write.table(inputData, "./inputDataAsym.csv", quote = FALSE, row.names = FALSE, col.names = TRUE, sep = ",")
+## write.table(inputDataAsym, "./inputDataAsym.csv", quote = FALSE, row.names = FALSE, col.names = TRUE, sep = ",")
+
 inputDataAsym <- read.csv("./inputDataAsym.csv")
 
+registerDoMC(56)
+
+cat(c("tree.number", "q01.sim", "q10.sim", "pSpec.sim", "lambda.sim", "ntaxa.sim", "q01.fit", "q10.fit", "pSpec.fit", "llik.fit"), "\n", append = FALSE, file = "results_asymtrans.txt", sep = "\t")
 
 result.asymtrans <- foreach(i = 1:dim(inputDataAsym)[1]) %dopar% {
     n <- inputDataAsym$tree.num[i]
@@ -101,5 +101,5 @@ result.asymtrans <- foreach(i = 1:dim(inputDataAsym)[1]) %dopar% {
 
     out <- tryCatch(optim(log(c(0.5, 0.5, 0.5)), foo, control = list(trace = 6)), error = function(x) return(data,frame(q01.fit = NA, q10.fit = NA, pSpec.fit = NA, llik.fit = NA)))
     data.frame(n, q01, q10, pSpec, lambda, ntaxa, exp(out$par[1]), exp(out$par[2]), exp(out$par[3]), out$value)
-    cat(sprintf("%s\t", c(n, q01, q10, pSpec, lambda, ntaxa, exp(out$par[1]), exp(out$par[2]), exp(out$par[3]), out$value)), "\n", file = "./results_symtrans.txt", append = TRUE)
+    cat(sprintf("%s\t", c(n, q01, q10, pSpec, lambda, ntaxa, exp(out$par[1]), exp(out$par[2]), exp(out$par[3]), out$value)), "\n", file = "./results_asymtrans.txt", append = TRUE)
 }
