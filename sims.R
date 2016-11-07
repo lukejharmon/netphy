@@ -60,7 +60,7 @@ result.symtrans <- foreach(i = 1:dim(inputDataSym)[1]) %dopar% {
     f = boxconstrain(foo, -10, 10, fail.value=1e200)
 
 
-    out <- tryCatch(optim(log(c(q01, q10, pSpec)), f, control = list(trace = 6, , reltol = .Machine$double.eps^.25)), error = function(x) return(data,frame(q01.fit = NA, q10.fit = NA, pSpec.fit = NA, llik.fit = NA)))
+    out <- tryCatch(optim(log(c(q01, q10, pSpec)), f, control = list(trace = 6, reltol = .Machine$double.eps^.25)), error = function(x) return(data.frame(q01.fit = NA, q10.fit = NA, pSpec.fit = NA, llik.fit = NA)))
     data.frame(n, q01, q10, pSpec, lambda, ntaxa, exp(out$par[1]), exp(out$par[2]), exp(out$par[3]), out$value)
     cat(sprintf("%s\t", c(n, q01, q10, pSpec, lambda, ntaxa, exp(out$par[1]), exp(out$par[2]), exp(out$par[3]), out$value)), "\n", file = "./results_symtrans_boxconstrain.txt", append = TRUE)
 }
