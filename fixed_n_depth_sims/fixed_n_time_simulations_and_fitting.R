@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 ##### Simulating 100 trees with fixed Ntip and depth to check for possible problems
 
 library("TreeSim")
@@ -9,10 +11,10 @@ library("dplyr")
 lapply(paste0("../R/",as.list(list.files("../R/"))), source)
 
 ## Registering number of cores to be used
-registerDoMC(1)
+registerDoMC(56)
 
 ## Number of Simulations
-NTrees <- 100
+Ntrees <- 100
 
 ## Network simulation parameters
 pSpec <- 0.4
@@ -29,7 +31,7 @@ max.age.small <- 10
 cat(c("tree.number", "q01.sim", "q10.sim", "pSpec.sim", "q01.fit", "q10.fit", "pSpec.fit", "llik.fit"), "\n", append = FALSE, file = "results_symtrans_boxconstrain_fixed_n_depth_small.txt", sep = "\t")
 
 ## Generating trees, networks, and estimating parameters
-results.small.trees <- foreach(1:Ntrees) %dopar% {
+results.small.trees <- foreach(i = 1:Ntrees) %dopar% {
     ## Simulating trees
     small.tree <- TreeSim::sim.bd.taxa.age(n = n.small.trees, numbsim = 1, lambda = 0.4, mu = 0, age = max.age.small, mrca = TRUE)
     small.tree <- drop.tip(small.tree[[1]], paste0("t", n.small.trees))
@@ -74,7 +76,7 @@ max.age.large <- 20
 cat(c("tree.number", "q01.sim", "q10.sim", "pSpec.sim", "q01.fit", "q10.fit", "pSpec.fit", "llik.fit"), "\n", append = FALSE, file = "results_symtrans_boxconstrain_fixed_n_depth_large.txt", sep = "\t")
 
 ## Generating trees, networks, and estimating parameters
-results.large.trees <- foreach(1:Ntrees) %dopar% {
+results.large.trees <- foreach(i = 1:Ntrees) %dopar% {
     ## Simulating trees
     large.tree <- TreeSim::sim.bd.taxa.age(n = n.large.trees, numbsim = 1, lambda = 0.4, mu = 0, age = max.age.large, mrca = TRUE)
     large.tree <- drop.tip(large.tree[[1]], paste0("t", n.large.trees))
@@ -107,7 +109,3 @@ results.large.trees <- foreach(1:Ntrees) %dopar% {
     data.frame(i, q01.large, q01.large, pSpec, exp(out$par[1]), exp(out$par[2]), exp(out$par[3]), out$value)
     cat(sprintf("%s\t", c(i, q01.large, q01.large, pSpec, exp(out$par[1]), exp(out$par[2]), exp(out$par[3]), out$value)), "\n", file = "./results_symtrans_boxconstrain_fixed_n_depth_large.txt", append = TRUE)
 }
-
-
-
-
