@@ -1,0 +1,19 @@
+##### Simulating 100 trees with fixed Ntip and depth to check for possible problems
+
+library("TreeSim")
+
+## Small trees
+N.trees <- 100
+n.small.trees <- 20
+max.age.small <- 10
+
+## Large trees
+n.large.trees <- 100
+max.age.large <- 20
+
+small.trees <- TreeSim::sim.bd.taxa.age(n = n.small.trees, numbsim = N.trees, lambda = 0.4, mu = 0, age = max.age.small, mrca = TRUE)
+write.nexus(small.trees, file = "./small_trees/small_trees.tre")
+
+large.trees <- TreeSim::sim.bd.taxa.age(n = n.large.trees, numbsim = N.trees, lambda = 0.4, mu = 0, age = max.age.large, mrca = TRUE)
+write.nexus(large.trees, file = "./large_trees/large_trees.tre")
+
