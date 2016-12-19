@@ -70,7 +70,7 @@ max.age.small <- 10
 
 ## Large trees
 n.large.trees <- 100
-max.age.large <- 20
+max.age.large <- 10
 
 ## Creating file for result storage
 cat(c("tree.number", "q01.sim", "q10.sim", "pSpec.sim", "q01.fit", "q10.fit", "pSpec.fit", "llik.fit"), "\n", append = FALSE, file = "results_symtrans_boxconstrain_fixed_n_depth_large.txt", sep = "\t")
