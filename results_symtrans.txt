@@ -1,0 +1,1 @@
+tree.number	q01.sim	q10.sim	pSpec.sim	lambda.sim	ntaxa.sim	q01.fit	q10.fit	pSpec.fit	llik.fit	

@@ -1,0 +1,30 @@
+#### Generating figures for preliminary results
+
+results.symtrans <- read.table("results_symtrans.txt", sep = "\t", header = TRUE)
+results.symtrans <- results.symtrans[, -dim(results.symtrans)[2]]
+results.symtrans <- results.symtrans[order(results.symtrans$tree.number), ]
+
+# results.symtrans[results.symtrans$q01.fit == max(results.symtrans$q01.fit),]
+# plot(log(results.symtrans$q01.fit) ~ log(results.symtrans$q01.sim)); abline(0, 1, col = 2)
+
+library(cowplot)
+
+ggplot(data = results.symtrans, aes(x = q01.sim, y = q01.fit)) +
+    geom_point(aes(size = ntaxa.sim), alpha = 0.5) +
+    scale_y_log10() +
+    geom_abline(slope = 1, intercept = 0, colour = "red")
+
+ggplot(data = results.symtrans, aes(x = q01.sim, y = q01.fit)) +
+    geom_point(aes(size = lambda.sim), alpha = 0.5) +
+    scale_y_log10() +
+    geom_abline(slope = 1, intercept = 0, colour = "red")
+
+ggplot(data = results.symtrans, aes(x = pSpec.sim, y = pSpec.fit)) +
+    geom_point(aes(size = ntaxa.sim), alpha = 0.5) +
+    scale_y_log10() +
+    geom_abline(slope = 1, intercept = 0, colour = "red")
+
+ggplot(data = results.symtrans, aes(x = pSpec.sim, y = pSpec.fit)) +
+    geom_point(aes(size = lambda.sim), alpha = 0.5) +
+    scale_y_log10() +
+    geom_abline(slope = 1, intercept = 0, colour = "red")

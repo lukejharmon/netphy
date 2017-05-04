@@ -1,0 +1,10 @@
+### Creating plots for all networks
+devtools::install_github('thomasp85/ggforce')
+devtools::install_github('thomasp85/ggraph')
+
+library(ggraph)
+library(igraph)
+
+nets.sym <- lapply(paste0("./nets/symtrans/net_", 1:1000, "_symtrans.csv"), read.csv)
+nets.asym <- lapply(paste0("./nets/asymtrans/net_", 1:1000, "_asymtrans.csv"), read.csv)
+

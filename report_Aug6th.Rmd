@@ -1,0 +1,97 @@
+---
+title: "Simulations for Harmon & Nuismer"
+date: "August 6th, 2016"
+output:
+  pdf_document:
+    fig_caption: true
+    latex_engine: xelatex
+    keep_tex: true
+    toc: false
+header-includes:
+   - \usepackage{setspace}
+   - \usepackage{lineno}
+   - \usepackage[font=scriptsize,labelfont=bf]{caption}
+   - \usepackage{indentfirst}
+fontsize: 12pt
+geometry: margin=1in
+---
+\linenumbers
+\pagenumbering{gobble}
+\setlength{\parindent}{1.0cm}
+\raggedright
+
+
+```{r echo = FALSE, warning = FALSE, message = FALSE}
+source("figs.R")
+caption.fig1 <- "A - Fitted q01 by Simulated q01; B - Standardized (Fitted q01 - Simulated q01) by Number of Taxa (values above 0 indicate overestimation, and below 0 indicate underestimation); C - Fitted q10 by Simulated q10; D - Standardized (Fitted q01 - Simulated q01) by Number of Taxa (values above 0 indicate overestimation, and below 0 indicate underestimation); E - Fitted pSpec by Simulated pSpec; F - Standardized (Fitted pSpec - Simulated pSpec) by Number of Taxa (values above 0 indicate overestimation, and below 0 indicate underestimation)"
+caption.fig2 <- "A - Fitted q01 by Simulated q01; B - Standardized (Fitted q01 - Simulated q01) by Number of Taxa (values above 0 indicate overestimation, and below 0 indicate underestimation); C - Fitted q10 by Simulated q10; D - Standardized (Fitted q01 - Simulated q01) by Number of Taxa (values above 0 indicate overestimation, and below 0 indicate underestimation); E - Fitted pSpec by Simulated pSpec; F - Standardized (Fitted pSpec - Simulated pSpec) by Number of Taxa (values above 0 indicate overestimation, and below 0 indicate underestimation)"
+```
+
+
+# Symmetrical transition rates
+Simulation parameters:
+```{r eval = FALSE, warning = FALSE}
+pSpec <- runif(n = 1000, min = 0, max = 2)
+q01 <- runif(n = 1000, min = 0, max = 1)
+q10 <- q01
+ntaxa <- runif(n = 1000, min = 10, max = 100)
+lambda <- runif(n = 1000, min = 0, max = 2)
+```
+
+```{r echo = FALSE, fig.cap = caption.fig1, fig.width = 7, fig.height = 9.2}
+p1 <-
+    plot_grid(q01.sym + theme_cowplot(font_size = 10) + theme(legend.position = "none"),
+          q01.sym.bytreesize + theme_cowplot(font_size = 10) + theme(legend.position = "none"),
+          q10.sym + theme_cowplot(font_size = 10) + theme(legend.position = "none"),
+          q10.sym.bytreesize + theme_cowplot(font_size = 10) + theme(legend.position = "none"),
+          pSpec.sym + theme_cowplot(font_size = 10) + theme(legend.position = "none"),
+          pSpec.sym.bytreesize + theme_cowplot(font_size = 10) + theme(legend.position = "none"),
+          ncol = 2,
+          align = 'hv',
+          labels = LETTERS[1:6])
+
+p2 <- plot_grid(
+    p1,
+    legend.sym,
+    nrow = 2,
+    rel_heights = c(0.9, 0.1)
+)
+
+p2
+```
+
+\newpage
+
+# Asymmetrical transition rates
+Simulation parameters:
+```{r eval = FALSE}
+pSpec <- runif(n = 1000, min = 0, max = 2)
+q01 <- runif(n = 1000, min = 0, max = 1)
+q10 <- q01
+ntaxa <- runif(n = 1000, min = 10, max = 100)
+lambda <- runif(n = 1000, min = 0, max = 2)
+```
+
+```{r echo = FALSE, fig.cap = caption.fig2, fig.width = 7, fig.height = 9.2}
+p3 <-
+    plot_grid(q01.asym + theme_cowplot(font_size = 10) + theme(legend.position = "none"),
+          q01.asym.bytreesize + theme_cowplot(font_size = 10) + theme(legend.position = "none"),
+          q10.asym + theme_cowplot(font_size = 10) + theme(legend.position = "none"),
+          q10.asym.bytreesize + theme_cowplot(font_size = 10) + theme(legend.position = "none"),
+          pSpec.asym + theme_cowplot(font_size = 10) + theme(legend.position = "none"),
+          pSpec.asym.bytreesize + theme_cowplot(font_size = 10) + theme(legend.position = "none"),
+          ncol = 2,
+          align = 'hv',
+          labels = LETTERS[1:6])
+
+p4 <- plot_grid(
+    p3,
+    legend.asym,
+    nrow = 2,
+    rel_heights = c(0.9, 0.1)
+)
+
+p4
+```
+
+

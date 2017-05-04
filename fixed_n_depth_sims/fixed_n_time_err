@@ -1,0 +1,2982 @@
+Loading required package: ape
+Loading required package: laser
+Loading required package: geiger
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:plyr’:
+
+    arrange, count, desc, failwith, id, mutate, rename, summarise,
+    summarize
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+[[1]]
+[[1]]$value
+function (tip.like, bl, q) 
+{
+    nb.states <- length(tip.like)
+    r <- rep(0, nb.states)
+    p <- MatrixExp.eig(q * bl)
+    for (i in 1:nb.states) r[i] <- logspace_sum(log(p[i, ]) + 
+        tip.like)
+    return(r)
+}
+
+[[1]]$visible
+[1] FALSE
+
+
+[[2]]
+[[2]]$value
+function (phy, network, pars) 
+{
+    if (sum(phy$edge.length == 0) > 0) 
+        cat("Function probably will not work when tree has zero-length branches\n\n")
+    mm <- match(phy$tip.label, rownames(network))
+    network <- network[mm, mm]
+    nNodes <- max(phy$edge)
+    nTips <- length(phy$tip.label)
+    lik <- list()
+    q01 <- pars[1]
+    q10 <- pars[2]
+    pSpec <- pars[3]
+    if (pSpec > 1) 
+        pSpec <- 1
+    qMatrix <- rbind(c(-q01, q01), c(q10, -q10))
+    for (i in 1:nTips) {
+        theTip <- phy$tip.label[i]
+        theRow <- which(rownames(network) == theTip)
+        interact <- network[theRow, ]
+        rr <- matrix(nrow = nTips, ncol = 2)
+        rownames(rr) <- phy$tip.label
+        colnames(rr) <- c(0, 1)
+        for (j in 1:nTips) if (interact[j] == 0) 
+            rr[j, ] <- c(0, -Inf)
+        else rr[j, ] <- c(-Inf, 0)
+        lik[[i]] <- rr
+        names(lik)[i] <- theTip
+    }
+    currTree <- phy
+    cumlnL <- 0
+    while (1) {
+        bt <- branching.times(currTree)
+        recentNode <- names(bt)[which(bt == min(bt))][1]
+        daughter <- tips(currTree, as.numeric(recentNode))
+        timeInterval <- bt[recentNode]
+        d1 <- which(names(lik) == daughter[1])
+        d1L <- lik[[d1]]
+        d2 <- which(names(lik) == daughter[2])
+        d2L <- lik[[d2]]
+        dCon <- d1L[daughter[2], ]
+        dNode <- branchLike(dCon, timeInterval, qMatrix)
+        dd <- dNode + log(c(1 - pSpec, pSpec))
+        cumlnL <- cumlnL + -logspace_sum(dd)
+        if (length(currTree$tip.label) == 2) 
+            break
+        currTree <- drop.tip(currTree, daughter[1])
+        oldLik <- lik
+        lik <- list()
+        nn <- length(currTree$tip.label)
+        for (i in 1:nn) {
+            theTip <- currTree$tip.label[i]
+            rr <- matrix(nrow = nn, ncol = 2)
+            rownames(rr) <- currTree$tip.label
+            colnames(rr) <- c(0, 1)
+            if (theTip %in% daughter) {
+                xx <- which(names(oldLik) == daughter[1])
+                ol1 <- oldLik[[xx]]
+                xx <- which(names(oldLik) == daughter[2])
+                ol2 <- oldLik[[xx]]
+                for (j in 1:nrow(ol1)) {
+                  if (rownames(ol1)[j] != daughter[1]) {
+                    l1 <- branchLike(ol1[j, ], timeInterval, 
+                      qMatrix)
+                    l2 <- branchLike(ol2[j, ], timeInterval, 
+                      qMatrix)
+                    rr[rownames(ol1)[j], ] <- l1 + l2
+                  }
+                }
+            }
+            else {
+                xx <- which(names(oldLik) == theTip)
+                theOldLik <- oldLik[[xx]]
+                lMerg <- theOldLik[daughter, ]
+                l1 <- branchLike(lMerg[1, ], timeInterval, qMatrix)
+                l2 <- branchLike(lMerg[2, ], timeInterval, qMatrix)
+                rr[daughter[2], ] <- l1 + l2
+                theRest <- rownames(rr)[which(!(rownames(rr) %in% 
+                  daughter))]
+                for (tt in theRest) {
+                  lold <- theOldLik[tt, ]
+                  lnew <- branchLike(lold, timeInterval, qMatrix)
+                  rr[tt, ] <- lnew
+                }
+            }
+            rr[theTip, ] <- c(0, -Inf)
+            lik[[i]] <- rr
+            names(lik)[i] <- theTip
+            nEdge <- which(currTree$edge[, 2] == i)
+            currTree$edge.length[nEdge] <- currTree$edge.length[nEdge] - 
+                timeInterval
+        }
+        if (length(lik) == 80) 
+            break
+    }
+    return(cumlnL)
+}
+
+[[2]]$visible
+[1] FALSE
+
+
+[[3]]
+[[3]]$value
+function (tip.like, bl, q) 
+{
+    nb.states <- length(tip.like)
+    r <- rep(0, nb.states)
+    p <- MatrixExp.eig(q * bl)
+    for (i in 1:nb.states) r[i] <- logspace_sum(log(p[i, ]) + 
+        tip.like)
+    return(r)
+}
+
+[[3]]$visible
+[1] FALSE
+
+
+[[4]]
+[[4]]$value
+function (logx, logy) 
+{
+    if (logx == -Inf) 
+        return(logy)
+    else max(logx, logy) + log1p(exp(-abs(logx - logy)))
+}
+
+[[4]]$visible
+[1] FALSE
+
+
+[[5]]
+[[5]]$value
+function (logx) 
+{
+    r <- logx[1]
+    if (length(logx) > 1) 
+        for (i in 2:length(logx)) r <- logspace_add(r, logx[i])
+    r
+}
+
+[[5]]$visible
+[1] FALSE
+
+
+[[6]]
+[[6]]$value
+function (Q) 
+{
+    tmp <- eigen(Q, symmetric = FALSE)
+    P1 <- tmp$vectors %*% diag(exp(tmp$values)) %*% solve(tmp$vectors)
+    return(P1)
+}
+
+[[6]]$visible
+[1] FALSE
+
+
+[[7]]
+[[7]]$value
+function (phy, qRate, sProb) 
+{
+    bt <- sort(branching.times(phy), decr = T)
+    nb <- dim(phy$edge)[1]
+    interactionMatrix <- matrix(nrow = nb, ncol = nb)
+    interactionMatrix[] <- 0
+    currentEdges <- numeric()
+    rootNumber <- as.numeric(names(bt)[1])
+    qMatrix <- rbind(c(-1, 1), c(1, -1)) * qRate
+    for (i in 1:length(bt)) {
+        thisEdge <- as.numeric(names(bt)[i])
+        ancestorRow <- which(phy$edge[, 2] == thisEdge)
+        descendantRow <- which(phy$edge[, 1] == thisEdge)
+        if (length(ancestorRow) == 0) {
+            r <- runif(1)
+            if (r < sProb) {
+                interactionMatrix[descendantRow, descendantRow] <- 1
+                diag(interactionMatrix) <- 0
+            }
+            currentEdges <- c(currentEdges, descendantRow)
+        }
+        else {
+            timeSpan <- bt[i - 1] - bt[i]
+            tProb <- MatrixExp.eig(qMatrix * timeSpan)
+            cn <- length(currentEdges)
+            for (j in 1:(cn - 1)) for (k in (j + 1):cn) {
+                e1 <- currentEdges[j]
+                e2 <- currentEdges[k]
+                currState <- interactionMatrix[e1, e2]
+                p0 <- tProb[currState + 1, 1]
+                r <- runif(1)
+                if (r < p0) {
+                  interactionMatrix[e1, e2] <- 0
+                  interactionMatrix[e2, e1] <- 0
+                }
+                else {
+                  interactionMatrix[e1, e2] <- 1
+                  interactionMatrix[e2, e1] <- 1
+                }
+            }
+            toCut <- which(currentEdges == ancestorRow)
+            currentEdges <- currentEdges[-toCut]
+            currentEdges <- c(currentEdges, descendantRow)
+            for (j in 1:length(descendantRow)) {
+                interactionMatrix[, descendantRow[j]] <- interactionMatrix[, 
+                  ancestorRow]
+                interactionMatrix[descendantRow[j], ] <- interactionMatrix[ancestorRow, 
+                  ]
+                diag(interactionMatrix) <- 0
+            }
+            r <- runif(1)
+            if (r < sProb) {
+                interactionMatrix[descendantRow, descendantRow] <- 1
+            }
+        }
+    }
+    nTaxa <- length(phy$tip.label)
+    tips <- which(phy$edge[, 2] <= nTaxa)
+    oo <- phy$edge[tips, 2]
+    res <- interactionMatrix[tips, tips]
+    rownames(res) <- phy$tip.label[oo]
+    colnames(res) <- phy$tip.label[oo]
+    return(res)
+}
+
+[[7]]$visible
+[1] FALSE
+
+
+[[8]]
+[[8]]$value
+function (phy, qRate, sProb) 
+{
+    bt <- sort(branching.times(phy), decr = T)
+    nb <- dim(phy$edge)[1]
+    interactionMatrix <- matrix(nrow = nb, ncol = nb)
+    interactionMatrix[] <- 0
+    currentEdges <- numeric()
+    rootNumber <- as.numeric(names(bt)[1])
+    qMatrix <- rbind(c(-1, 1), c(1, -1)) * qRate
+    for (i in 1:length(bt)) {
+        thisEdge <- as.numeric(names(bt)[i])
+        ancestorRow <- which(phy$edge[, 2] == thisEdge)
+        descendantRow <- which(phy$edge[, 1] == thisEdge)
+        if (length(ancestorRow) == 0) {
+            r <- runif(1)
+            if (r < sProb) {
+                interactionMatrix[descendantRow, descendantRow] <- 1
+                diag(interactionMatrix) <- 0
+            }
+            currentEdges <- c(currentEdges, descendantRow)
+        }
+        else {
+            timeSpan <- bt[i - 1] - bt[i]
+            tProb <- MatrixExp.eig(qMatrix * timeSpan)
+            cn <- length(currentEdges)
+            for (j in 1:(cn - 1)) for (k in (j + 1):cn) {
+                e1 <- currentEdges[j]
+                e2 <- currentEdges[k]
+                currState <- interactionMatrix[e1, e2]
+                p0 <- tProb[currState + 1, 1]
+                r <- runif(1)
+                if (r < p0) {
+                  interactionMatrix[e1, e2] <- 0
+                  interactionMatrix[e2, e1] <- 0
+                }
+                else {
+                  interactionMatrix[e1, e2] <- 1
+                  interactionMatrix[e2, e1] <- 1
+                }
+            }
+            toCut <- which(currentEdges == ancestorRow)
+            currentEdges <- currentEdges[-toCut]
+            currentEdges <- c(currentEdges, descendantRow)
+            for (j in 1:length(descendantRow)) {
+                interactionMatrix[, descendantRow[j]] <- interactionMatrix[, 
+                  ancestorRow]
+                interactionMatrix[descendantRow[j], ] <- interactionMatrix[ancestorRow, 
+                  ]
+                diag(interactionMatrix) <- 0
+            }
+            r <- runif(1)
+            if (r < sProb) {
+                interactionMatrix[descendantRow, descendantRow] <- 1
+            }
+        }
+    }
+    nTaxa <- length(phy$tip.label)
+    tips <- which(phy$edge[, 2] <= nTaxa)
+    oo <- phy$edge[tips, 2]
+    res <- interactionMatrix[tips, tips]
+    rownames(res) <- phy$tip.label[oo]
+    colnames(res) <- phy$tip.label[oo]
+    return(res)
+}
+
+[[8]]$visible
+[1] FALSE
+
+
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 40.447148
+  Scaled convergence tolerance is 0.00493741
+Stepsize computed as 0.690776
+function value for initial parameters = 40.662126
+  Scaled convergence tolerance is 0.00496365
+Stepsize computed as 0.690776
+function value for initial parameters = 74.331438
+  Scaled convergence tolerance is 0.00907368
+Stepsize computed as 0.690776
+function value for initial parameters = 80.232830
+  Scaled convergence tolerance is 0.00979406
+Stepsize computed as 0.690776
+function value for initial parameters = 60.234695
+  Scaled convergence tolerance is 0.00735288
+Stepsize computed as 0.690776
+function value for initial parameters = 69.330756
+  Scaled convergence tolerance is 0.00846324
+Stepsize computed as 0.690776
+function value for initial parameters = 60.679030
+  Scaled convergence tolerance is 0.00740712
+Stepsize computed as 0.690776
+function value for initial parameters = 47.290385
+  Scaled convergence tolerance is 0.00577277
+Stepsize computed as 0.690776
+function value for initial parameters = 67.612419
+  Scaled convergence tolerance is 0.00825348
+Stepsize computed as 0.690776
+function value for initial parameters = 60.192838
+  Scaled convergence tolerance is 0.00734777
+Stepsize computed as 0.690776
+function value for initial parameters = 74.320589
+  Scaled convergence tolerance is 0.00907235
+Stepsize computed as 0.690776
+function value for initial parameters = 47.156851
+  Scaled convergence tolerance is 0.00575647
+Stepsize computed as 0.690776
+function value for initial parameters = 60.138722
+  Scaled convergence tolerance is 0.00734117
+Stepsize computed as 0.690776
+function value for initial parameters = 60.726600
+  Scaled convergence tolerance is 0.00741293
+Stepsize computed as 0.690776
+function value for initial parameters = 46.098006
+  Scaled convergence tolerance is 0.00562721
+Stepsize computed as 0.690776
+function value for initial parameters = 67.329022
+  Scaled convergence tolerance is 0.00821889
+Stepsize computed as 0.690776
+function value for initial parameters = 79.994282
+  Scaled convergence tolerance is 0.00976494
+Stepsize computed as 0.690776
+function value for initial parameters = 72.081307
+  Scaled convergence tolerance is 0.008799
+Stepsize computed as 0.690776
+function value for initial parameters = 60.367569
+  Scaled convergence tolerance is 0.0073691
+Stepsize computed as 0.690776
+function value for initial parameters = 40.452811
+  Scaled convergence tolerance is 0.0049381
+Stepsize computed as 0.690776
+function value for initial parameters = 66.796873
+  Scaled convergence tolerance is 0.00815393
+Stepsize computed as 0.690776
+function value for initial parameters = 40.115543
+  Scaled convergence tolerance is 0.00489693
+Stepsize computed as 0.690776
+function value for initial parameters = 33.526381
+  Scaled convergence tolerance is 0.00409259
+Stepsize computed as 0.690776
+function value for initial parameters = 53.709635
+  Scaled convergence tolerance is 0.00655637
+Stepsize computed as 0.690776
+function value for initial parameters = 60.866894
+  Scaled convergence tolerance is 0.00743006
+Stepsize computed as 0.690776
+function value for initial parameters = 60.341457
+  Scaled convergence tolerance is 0.00736592
+Stepsize computed as 0.690776
+function value for initial parameters = 73.324840
+  Scaled convergence tolerance is 0.0089508
+Stepsize computed as 0.690776
+function value for initial parameters = 33.714744
+  Scaled convergence tolerance is 0.00411558
+Stepsize computed as 0.690776
+function value for initial parameters = 46.943785
+  Scaled convergence tolerance is 0.00573046
+Stepsize computed as 0.690776
+function value for initial parameters = 40.341901
+  Scaled convergence tolerance is 0.00492456
+Stepsize computed as 0.690776
+function value for initial parameters = 66.826278
+  Scaled convergence tolerance is 0.00815752
+Stepsize computed as 0.690776
+function value for initial parameters = 59.707183
+  Scaled convergence tolerance is 0.00728849
+Stepsize computed as 0.690776
+function value for initial parameters = 60.186962
+  Scaled convergence tolerance is 0.00734706
+Stepsize computed as 0.690776
+function value for initial parameters = 59.738759
+  Scaled convergence tolerance is 0.00729234
+Stepsize computed as 0.690776
+function value for initial parameters = 39.941743
+  Scaled convergence tolerance is 0.00487572
+Stepsize computed as 0.690776
+function value for initial parameters = 60.476742
+  Scaled convergence tolerance is 0.00738243
+Stepsize computed as 0.690776
+function value for initial parameters = 67.417033
+  Scaled convergence tolerance is 0.00822963
+Stepsize computed as 0.690776
+function value for initial parameters = 13.474887
+  Scaled convergence tolerance is 0.0016449
+Stepsize computed as 0.690776
+function value for initial parameters = 67.081365
+  Scaled convergence tolerance is 0.00818866
+Stepsize computed as 0.690776
+function value for initial parameters = 54.045328
+  Scaled convergence tolerance is 0.00659734
+Stepsize computed as 0.690776
+function value for initial parameters = 53.109471
+  Scaled convergence tolerance is 0.0064831
+Stepsize computed as 0.690776
+function value for initial parameters = 53.861176
+  Scaled convergence tolerance is 0.00657487
+Stepsize computed as 0.690776
+function value for initial parameters = 53.898496
+  Scaled convergence tolerance is 0.00657942
+Stepsize computed as 0.690776
+function value for initial parameters = 46.848116
+  Scaled convergence tolerance is 0.00571878
+Stepsize computed as 0.690776
+function value for initial parameters = 40.528735
+  Scaled convergence tolerance is 0.00494737
+Stepsize computed as 0.690776
+function value for initial parameters = 39.744978
+  Scaled convergence tolerance is 0.0048517
+Stepsize computed as 0.690776
+function value for initial parameters = 39.996779
+  Scaled convergence tolerance is 0.00488243
+Stepsize computed as 0.690776
+function value for initial parameters = 27.165683
+  Scaled convergence tolerance is 0.00331614
+Stepsize computed as 0.690776
+function value for initial parameters = 73.203963
+  Scaled convergence tolerance is 0.00893605
+Stepsize computed as 0.690776
+function value for initial parameters = 46.896281
+  Scaled convergence tolerance is 0.00572466
+Stepsize computed as 0.690776
+function value for initial parameters = 59.721990
+  Scaled convergence tolerance is 0.0072903
+Stepsize computed as 0.690776
+function value for initial parameters = 73.383600
+  Scaled convergence tolerance is 0.00895797
+Stepsize computed as 0.690776
+function value for initial parameters = 59.670151
+  Scaled convergence tolerance is 0.00728397
+Stepsize computed as 0.690776
+function value for initial parameters = 40.506594
+  Scaled convergence tolerance is 0.00494467
+Stepsize computed as 0.690776
+function value for initial parameters = 46.324101
+  Scaled convergence tolerance is 0.00565481
+Stepsize computed as 0.690776
+function value for initial parameters = 33.690590
+  Scaled convergence tolerance is 0.00411264
+Stepsize computed as 0.690776
+BUILD              4 40.447148 36.792233
+BUILD              4 74.331438 67.523470
+BUILD              4 80.232830 73.180303
+BUILD              4 40.662126 36.915913
+BUILD              4 69.330756 63.743228
+BUILD              4 60.234695 54.939401
+BUILD              4 60.679030 55.176953
+BUILD              4 67.612419 61.416081
+BUILD              4 60.192838 54.904338
+BUILD              4 47.290385 42.973175
+BUILD              4 74.320589 67.516387
+BUILD              4 47.156851 42.903435
+BUILD              4 60.138722 54.872069
+BUILD              4 60.726600 55.204957
+BUILD              4 40.115543 36.610095
+BUILD              4 46.098006 42.309899
+BUILD              4 67.329022 61.244899
+BUILD              4 60.367569 55.000367
+BUILD              4 72.081307 66.238601
+BUILD              4 66.796873 60.962455
+BUILD              4 40.452811 36.799169
+BUILD              4 79.994282 73.062274
+BUILD              4 53.709635 48.925140
+BUILD              4 33.714744 30.668134
+BUILD              4 66.826278 60.982238
+BUILD              4 33.526381 30.566953
+BUILD              4 73.324840 66.959497
+BUILD              4 60.341457 54.997659
+BUILD              4 60.866894 55.279670
+BUILD              4 46.943785 42.783132
+BUILD              4 40.528735 36.837494
+BUILD              4 59.738759 54.630883
+BUILD              4 59.707183 54.642091
+BUILD              4 60.186962 54.890375
+BUILD              4 67.417033 61.304458
+BUILD              4 40.341901 36.734608
+BUILD              4 39.941743 36.516817
+BUILD              4 60.476742 55.061040
+BUILD              4 54.045328 49.114191
+BUILD              4 67.081365 61.120977
+BUILD              4 53.861176 49.015360
+BUILD              4 46.848116 42.721655
+BUILD              4 27.165683 24.651820
+BUILD              4 39.996779 36.540304
+BUILD              4 53.898496 49.025190
+BUILD              4 73.203963 66.900573
+BUILD              4 53.109471 48.595084
+BUILD              4 13.474887 12.284415
+BUILD              4 39.744978 36.403343
+BUILD              4 46.896281 42.766124
+BUILD              4 59.721990 54.637959
+BUILD              4 59.670151 54.609436
+BUILD              4 73.383600 67.005641
+BUILD              4 40.506594 36.823808
+BUILD              4 46.324101 42.442914
+BUILD              4 33.690590 30.662005
+LO-REDUCTION       6 40.447148 36.792233
+LO-REDUCTION       6 74.331438 67.523470
+LO-REDUCTION       6 40.662126 36.915913
+LO-REDUCTION       6 80.232830 73.180303
+LO-REDUCTION       6 69.330756 63.743228
+LO-REDUCTION       6 60.234695 54.939401
+LO-REDUCTION       6 67.612419 61.416081
+LO-REDUCTION       6 60.192838 54.904338
+LO-REDUCTION       6 60.679030 55.176953
+LO-REDUCTION       6 47.290385 42.973175
+LO-REDUCTION       6 74.320589 67.516387
+LO-REDUCTION       6 47.156851 42.903435
+LO-REDUCTION       6 60.726600 55.204957
+LO-REDUCTION       6 60.138722 54.872069
+LO-REDUCTION       6 40.115543 36.610095
+LO-REDUCTION       6 46.098006 42.309899
+LO-REDUCTION       6 60.367569 55.000367
+LO-REDUCTION       6 67.329022 61.244899
+LO-REDUCTION       6 72.081307 66.238601
+LO-REDUCTION       6 66.796873 60.962455
+LO-REDUCTION       6 40.452811 36.799169
+LO-REDUCTION       6 53.709635 48.925140
+LO-REDUCTION       6 79.994282 73.062274
+LO-REDUCTION       6 66.826278 60.982238
+LO-REDUCTION       6 33.526381 30.566953
+LO-REDUCTION       6 73.324840 66.959497
+LO-REDUCTION       6 60.341457 54.997659
+LO-REDUCTION       6 60.866894 55.279670
+LO-REDUCTION       6 33.714744 30.668134
+LO-REDUCTION       6 40.528735 36.837494
+LO-REDUCTION       6 59.738759 54.630883
+LO-REDUCTION       6 46.943785 42.783132
+LO-REDUCTION       6 59.707183 54.642091
+LO-REDUCTION       6 67.417033 61.304458
+LO-REDUCTION       6 60.186962 54.890375
+LO-REDUCTION       6 40.341901 36.734608
+LO-REDUCTION       6 39.941743 36.516817
+LO-REDUCTION       6 60.476742 55.061040
+LO-REDUCTION       6 53.861176 49.015360
+LO-REDUCTION       6 54.045328 49.114191
+LO-REDUCTION       6 67.081365 61.120977
+LO-REDUCTION       6 39.996779 36.540304
+LO-REDUCTION       6 27.165683 24.651820
+LO-REDUCTION       6 46.848116 42.721655
+LO-REDUCTION       6 53.898496 49.025190
+LO-REDUCTION       6 73.203963 66.900573
+LO-REDUCTION       6 53.109471 48.595084
+LO-REDUCTION       6 13.474887 12.284415
+LO-REDUCTION       6 39.744978 36.403343
+LO-REDUCTION       6 46.896281 42.766124
+LO-REDUCTION       6 59.670151 54.609436
+LO-REDUCTION       6 73.383600 67.005641
+LO-REDUCTION       6 40.506594 36.823808
+LO-REDUCTION       6 59.721990 54.637959
+LO-REDUCTION       6 33.690590 30.662005
+LO-REDUCTION       6 46.324101 42.442914
+EXTENSION          8 39.637925 33.580104
+EXTENSION          8 72.986298 61.697836
+EXTENSION          8 39.970894 33.793904
+EXTENSION          8 78.199712 66.451003
+EXTENSION          8 67.565455 57.853082
+EXTENSION          8 58.694598 49.915671
+EXTENSION          8 66.379339 56.131654
+EXTENSION          8 58.679952 49.875547
+EXTENSION          8 46.429039 39.271056
+EXTENSION          8 59.481157 50.356059
+EXTENSION          8 72.973289 61.687551
+EXTENSION          8 46.181356 39.137064
+EXTENSION          8 59.547375 50.401431
+EXTENSION          8 58.597449 49.817128
+EXTENSION          8 44.429452 38.083507
+EXTENSION          8 39.071125 33.248760
+EXTENSION          8 58.967786 50.044116
+EXTENSION          8 39.624952 33.584605
+EXTENSION          8 65.974983 55.849164
+EXTENSION          8 69.359090 59.465201
+EXTENSION          8 65.017277 55.320634
+EXTENSION          8 52.475451 44.535633
+EXTENSION          8 65.049098 55.346642
+EXTENSION          8 33.049917 28.000911
+EXTENSION          8 71.317401 60.694904
+EXTENSION          8 32.719610 27.815034
+EXTENSION          8 58.872269 50.018731
+EXTENSION          8 59.801937 50.538834
+EXTENSION          8 39.773705 33.662115
+EXTENSION          8 57.993082 49.418783
+EXTENSION          8 77.743069 66.215929
+EXTENSION          8 57.826735 49.387937
+EXTENSION          8 66.072528 55.938469
+EXTENSION          8 58.706547 49.863346
+EXTENSION          8 39.473416 33.491235
+EXTENSION          8 38.763388 33.079116
+EXTENSION          8 59.150297 50.152884
+EXTENSION          8 52.701288 44.686007
+EXTENSION          8 45.839972 38.934171
+EXTENSION          8 38.894082 33.139128
+EXTENSION          8 53.033105 44.875742
+EXTENSION          8 65.493026 55.601881
+EXTENSION          8 45.703924 38.831149
+EXTENSION          8 26.747971 22.608120
+EXTENSION          8 52.821358 44.727667
+EXTENSION          8 71.080352 60.580492
+EXTENSION          8 51.458143 43.940794
+EXTENSION          8 13.175220 11.226757
+EXTENSION          8 38.450781 32.881038
+EXTENSION          8 45.705919 38.874469
+EXTENSION          8 57.811075 49.351113
+EXTENSION          8 71.360447 60.758566
+EXTENSION          8 39.741487 33.640780
+EXTENSION          8 57.902828 49.402136
+EXTENSION          8 32.982649 27.984112
+EXTENSION          8 44.783040 38.314365
+EXTENSION         10 37.695054 27.626452
+EXTENSION         10 69.274031 50.511862
+EXTENSION         10 74.715735 54.956087
+EXTENSION         10 37.909715 27.660481
+EXTENSION         10 64.735121 49.593014
+EXTENSION         10 63.015946 45.946845
+EXTENSION         10 56.101569 41.283466
+EXTENSION         10 56.060177 41.271894
+EXTENSION         10 56.544833 41.344867
+EXTENSION         10 44.077508 32.212830
+EXTENSION         10 69.263335 50.509869
+EXTENSION         10 43.943849 32.194592
+EXTENSION         10 56.591808 41.351794
+EXTENSION         10 42.886436 32.032770
+EXTENSION         10 56.004896 41.260763
+EXTENSION         10 37.363521 27.577110
+EXTENSION         10 56.233241 41.295060
+EXTENSION         10 37.700404 27.628556
+EXTENSION         10 67.028636 50.157785
+EXTENSION         10 62.732795 45.897182
+EXTENSION         10 62.201624 45.824419
+EXTENSION         10 50.035326 36.737210
+EXTENSION         10 62.230110 45.829246
+EXTENSION         10 31.423687 23.054499
+EXTENSION         10 68.268425 50.357660
+EXTENSION         10 31.235997 23.028702
+EXTENSION         10 56.207327 41.297685
+EXTENSION         10 56.731319 41.370418
+EXTENSION         10 37.776757 27.638835
+EXTENSION         10 55.605374 41.189539
+EXTENSION         10 55.573996 41.200933
+EXTENSION         10 74.478128 54.929128
+EXTENSION         10 62.821156 45.916562
+EXTENSION         10 50.186550 36.762934
+EXTENSION         10 56.052590 41.262463
+EXTENSION         10 37.594241 27.617440
+EXTENSION         10 37.190846 27.553923
+EXTENSION         10 56.342305 41.311593
+EXTENSION         10 37.247228 27.560586
+EXTENSION         10 43.733538 32.165094
+EXTENSION         10 50.372215 36.791576
+EXTENSION         10 62.485239 45.866609
+EXTENSION         10 25.336490 18.514867
+EXTENSION         10 43.635879 32.142896
+EXTENSION         10 68.149297 50.346031
+EXTENSION         10 50.225045 36.764922
+EXTENSION         10 12.568582 9.341612
+EXTENSION         10 49.436603 36.649896
+EXTENSION         10 36.993725 27.521302
+EXTENSION         10 43.682730 32.157912
+EXTENSION         10 55.537019 41.188612
+EXTENSION         10 68.328511 50.375880
+EXTENSION         10 37.754834 27.635082
+EXTENSION         10 55.588638 41.196256
+EXTENSION         10 31.401525 23.057585
+EXTENSION         10 43.113820 32.073039
+EXTENSION         12 36.792233 22.372946
+EXTENSION         12 67.523470 40.621208
+EXTENSION         12 36.915913 22.389568
+EXTENSION         12 73.180303 44.205703
+EXTENSION         12 63.743228 41.304417
+EXTENSION         12 61.416081 36.977676
+EXTENSION         12 54.939401 33.287799
+EXTENSION         12 54.904338 33.282810
+EXTENSION         12 55.176953 33.317313
+EXTENSION         12 42.973175 26.027656
+EXTENSION         12 67.516387 40.620411
+EXTENSION         12 42.903435 26.018332
+EXTENSION         12 55.204957 33.319806
+EXTENSION         12 42.309899 25.938424
+EXTENSION         12 36.610095 22.347992
+EXTENSION         12 54.872069 33.275143
+EXTENSION         12 55.000367 33.291622
+EXTENSION         12 36.799169 22.373420
+EXTENSION         12 66.238601 40.449071
+EXTENSION         12 48.925140 29.650067
+EXTENSION         12 61.244899 36.952578
+EXTENSION         12 60.962455 36.917603
+EXTENSION         12 30.668134 18.725644
+EXTENSION         12 60.982238 36.918518
+EXTENSION         12 66.959497 40.544571
+EXTENSION         12 30.566953 18.713788
+EXTENSION         12 54.997659 33.293547
+EXTENSION         12 55.279670 33.327835
+EXTENSION         12 36.837494 22.379281
+EXTENSION         12 54.630883 33.239095
+EXTENSION         12 49.015360 29.662763
+EXTENSION         12 54.642091 33.245854
+EXTENSION         12 61.304458 36.963189
+EXTENSION         12 54.890375 33.274892
+EXTENSION         12 36.734608 22.375420
+EXTENSION         12 36.516817 22.338115
+EXTENSION         12 55.061040 33.299918
+EXTENSION         12 73.062274 44.193925
+EXTENSION         12 36.540304 22.343476
+EXTENSION         12 49.114191 29.679786
+EXTENSION         12 61.120977 36.937450
+EXTENSION         12 42.783132 26.007639
+EXTENSION         12 24.651820 15.096240
+EXTENSION         12 42.721655 25.992964
+EXTENSION         12 49.025190 29.665560
+EXTENSION         12 66.900573 40.541614
+EXTENSION         12 12.284415 7.788447
+EXTENSION         12 48.595084 29.608199
+EXTENSION         12 36.403343 22.320927
+EXTENSION         12 42.766124 25.998961
+EXTENSION         12 54.609436 33.239415
+EXTENSION         12 67.005641 40.556443
+EXTENSION         12 36.823808 22.377782
+EXTENSION         12 54.637959 33.242934
+EXTENSION         12 30.662005 18.730544
+EXTENSION         12 42.442914 25.961030
+EXTENSION         14 33.580104 12.562905
+EXTENSION         14 61.697836 19.488840
+EXTENSION         14 33.793904 12.565499
+EXTENSION         14 66.451003 20.857762
+EXTENSION         14 57.853082 23.122668
+EXTENSION         14 56.131654 18.106856
+EXTENSION         14 49.915671 16.717545
+EXTENSION         14 49.875547 16.726530
+EXTENSION         14 50.356059 16.727251
+EXTENSION         14 39.271056 13.951348
+EXTENSION         14 61.687551 19.489890
+EXTENSION         14 39.137064 13.947347
+EXTENSION         14 50.401431 16.723285
+EXTENSION         14 38.083507 13.921261
+EXTENSION         14 33.248760 12.551138
+EXTENSION         14 49.817128 16.711407
+EXTENSION         14 50.044116 16.714164
+EXTENSION         14 33.584605 12.558238
+EXTENSION         14 44.535633 15.321191
+EXTENSION         14 59.465201 19.453562
+EXTENSION         14 55.849164 18.096100
+EXTENSION         14 55.320634 18.089231
+EXTENSION         14 28.000911 11.177346
+EXTENSION         14 55.346642 18.080280
+EXTENSION         14 60.694904 19.462567
+EXTENSION         14 27.815034 11.178040
+EXTENSION         14 50.018731 16.714776
+EXTENSION         14 50.538834 16.719134
+EXTENSION         14 33.662115 12.565308
+EXTENSION         14 49.418783 16.695124
+EXTENSION         14 44.686007 15.325490
+EXTENSION         14 49.387937 16.699121
+EXTENSION         14 55.938469 18.104188
+EXTENSION         14 49.863346 16.705995
+EXTENSION         14 33.491235 12.602938
+EXTENSION         14 33.079116 12.555162
+EXTENSION         14 50.152884 16.716843
+EXTENSION         14 33.139128 12.571496
+EXTENSION         14 66.215929 20.860178
+EXTENSION         14 44.875742 15.346794
+EXTENSION         14 55.601881 18.088871
+EXTENSION         14 38.934171 13.965397
+EXTENSION         14 22.608120 9.807433
+EXTENSION         14 38.831149 13.939300
+EXTENSION         14 44.727667 15.337905
+EXTENSION         14 60.580492 19.477308
+REFLECTION        14 11.226757 7.036366
+EXTENSION         14 43.940794 15.314007
+EXTENSION         14 32.881038 12.545092
+EXTENSION         14 38.874469 13.933765
+EXTENSION         14 49.351113 16.698386
+EXTENSION         14 60.758566 19.481771
+EXTENSION         14 33.640780 12.567618
+EXTENSION         14 27.984112 11.195973
+EXTENSION         14 49.402136 16.696383
+EXTENSION         14 38.314365 13.943379
+REFLECTION        16 27.626452 12.373151
+REFLECTION        16 50.511862 13.783095
+REFLECTION        16 27.660481 12.371707
+REFLECTION        16 54.956087 14.066641
+REFLECTION        16 49.593014 20.579946
+REFLECTION        16 45.946845 13.502177
+REFLECTION        16 41.283466 13.219150
+REFLECTION        16 41.271894 13.225028
+REFLECTION        16 41.344867 13.221924
+REFLECTION        16 32.212830 12.654714
+REFLECTION        16 50.509869 13.783477
+REFLECTION        16 32.194592 12.655229
+REFLECTION        16 41.351794 13.221141
+REFLECTION        16 32.032770 12.653564
+REFLECTION        16 27.577110 12.371870
+REFLECTION        16 41.260763 13.221440
+REFLECTION        16 41.295060 13.220950
+REFLECTION        16 27.628556 12.371126
+REFLECTION        16 36.737210 12.935359
+REFLECTION        16 50.157785 13.785861
+REFLECTION        16 45.897182 13.500653
+REFLECTION        16 45.824419 13.501652
+LO-REDUCTION      16 23.054499 11.177346
+REFLECTION        16 45.829246 13.499071
+REFLECTION        16 50.357660 13.782219
+REFLECTION        16 41.370418 13.219333
+LO-REDUCTION      16 23.028702 11.178040
+REFLECTION        16 41.297685 13.219635
+REFLECTION        16 27.638835 12.372681
+REFLECTION        16 36.762934 12.936191
+REFLECTION        16 41.189539 13.217953
+REFLECTION        16 41.200933 13.218316
+REFLECTION        16 45.916562 13.501927
+REFLECTION        16 41.262463 13.219780
+REFLECTION        16 27.617440 12.382951
+REFLECTION        16 27.553923 12.372591
+REFLECTION        16 41.311593 13.220559
+REFLECTION        16 27.560586 12.377597
+REFLECTION        16 54.929128 14.067762
+REFLECTION        16 36.791576 12.939700
+REFLECTION        16 45.866609 13.499521
+LO-REDUCTION      16 18.514867 9.807433
+REFLECTION        16 32.142896 12.653384
+REFLECTION        16 32.165094 12.659910
+REFLECTION        16 36.764922 12.939066
+REFLECTION        16 50.346031 13.786617
+REFLECTION        16 9.341612 6.593312
+REFLECTION        16 36.649896 12.936268
+REFLECTION        16 27.521302 12.372004
+REFLECTION        16 32.157912 12.653646
+REFLECTION        16 41.188612 13.219535
+REFLECTION        16 50.375880 13.786697
+REFLECTION        16 27.635082 12.373736
+LO-REDUCTION      16 23.057585 11.195973
+REFLECTION        16 41.196256 13.217804
+REFLECTION        16 32.073039 12.657773
+HI-REDUCTION      18 22.372946 12.373151
+HI-REDUCTION      18 40.621208 13.783095
+HI-REDUCTION      18 22.389568 12.371707
+LO-REDUCTION      18 44.205703 13.583759
+HI-REDUCTION      18 41.304417 20.579946
+HI-REDUCTION      18 36.977676 13.502177
+HI-REDUCTION      18 33.287799 13.219150
+HI-REDUCTION      18 33.282810 13.225028
+HI-REDUCTION      18 33.317313 13.221924
+HI-REDUCTION      18 26.027656 12.654714
+HI-REDUCTION      18 40.620411 13.783477
+HI-REDUCTION      18 26.018332 12.655229
+HI-REDUCTION      18 33.319806 13.221141
+HI-REDUCTION      18 25.938424 12.653564
+HI-REDUCTION      18 22.347992 12.371870
+HI-REDUCTION      18 33.275143 13.221440
+HI-REDUCTION      18 33.291622 13.220950
+HI-REDUCTION      18 22.373420 12.371126
+HI-REDUCTION      18 29.650067 12.935359
+LO-REDUCTION      18 40.449071 13.443592
+HI-REDUCTION      18 36.917603 13.501652
+HI-REDUCTION      18 36.952578 13.500653
+HI-REDUCTION      18 18.725644 11.177346
+HI-REDUCTION      18 36.918518 13.499071
+HI-REDUCTION      18 40.544571 13.782219
+HI-REDUCTION      18 33.293547 13.219635
+HI-REDUCTION      18 33.327835 13.219333
+HI-REDUCTION      18 18.713788 11.178040
+HI-REDUCTION      18 22.379281 12.372681
+HI-REDUCTION      18 29.662763 12.936191
+HI-REDUCTION      18 33.239095 13.217953
+HI-REDUCTION      18 33.245854 13.218316
+HI-REDUCTION      18 36.963189 13.501927
+HI-REDUCTION      18 33.274892 13.219780
+HI-REDUCTION      18 22.375420 12.382951
+HI-REDUCTION      18 22.338115 12.372591
+HI-REDUCTION      18 33.299918 13.220559
+HI-REDUCTION      18 22.343476 12.377597
+LO-REDUCTION      18 44.193925 13.586035
+HI-REDUCTION      18 29.679786 12.939700
+HI-REDUCTION      18 36.937450 13.499521
+HI-REDUCTION      18 15.096240 9.807433
+HI-REDUCTION      18 25.992964 12.653384
+HI-REDUCTION      18 29.665560 12.939066
+HI-REDUCTION      18 26.007639 12.659910
+LO-REDUCTION      18 7.788447 6.453932
+HI-REDUCTION      18 40.541614 13.786617
+HI-REDUCTION      18 29.608199 12.936268
+HI-REDUCTION      18 22.320927 12.372004
+HI-REDUCTION      18 25.998961 12.653646
+HI-REDUCTION      18 33.239415 13.219535
+HI-REDUCTION      18 40.556443 13.786697
+HI-REDUCTION      18 22.377782 12.373736
+HI-REDUCTION      18 18.730544 11.195973
+HI-REDUCTION      18 33.242934 13.217804
+HI-REDUCTION      18 25.961030 12.657773
+HI-REDUCTION      20 20.384984 12.373151
+LO-REDUCTION      20 36.795999 13.783095
+HI-REDUCTION      20 29.175015 13.583759
+HI-REDUCTION      20 20.397785 12.371707
+LO-REDUCTION      20 38.073667 20.532872
+LO-REDUCTION      20 30.206397 13.219150
+LO-REDUCTION      20 33.518614 13.502177
+LO-REDUCTION      20 30.203107 13.225028
+LO-REDUCTION      20 30.229042 13.221924
+LO-REDUCTION      20 23.671411 12.522374
+LO-REDUCTION      20 36.795500 13.783477
+LO-REDUCTION      20 23.663936 12.522344
+LO-REDUCTION      20 30.230438 13.221141
+LO-REDUCTION      20 30.195866 13.221440
+HI-REDUCTION      20 20.365176 12.371870
+LO-REDUCTION      20 23.601731 12.517107
+LO-REDUCTION      20 30.208440 13.220950
+HI-REDUCTION      20 20.384979 12.371126
+LO-REDUCTION      20 26.931644 12.935359
+HI-REDUCTION      20 26.864665 13.443592
+LO-REDUCTION      20 33.472036 13.501652
+LO-REDUCTION      20 33.498828 13.500653
+HI-REDUCTION      20 17.104531 11.177346
+LO-REDUCTION      20 33.471843 13.499071
+LO-REDUCTION      20 36.736066 13.782219
+LO-REDUCTION      20 30.236019 13.219333
+LO-REDUCTION      20 30.210169 13.219635
+HI-REDUCTION      20 17.095782 11.178040
+HI-REDUCTION      20 20.390042 12.372681
+LO-REDUCTION      20 26.941484 12.936191
+LO-REDUCTION      20 30.167485 13.217953
+LO-REDUCTION      20 30.173077 13.218316
+LO-REDUCTION      20 33.507612 13.501927
+LO-REDUCTION      20 30.195129 13.219780
+HI-REDUCTION      20 20.390978 12.382951
+HI-REDUCTION      20 20.363854 12.377597
+HI-REDUCTION      20 20.358371 12.372591
+LO-REDUCTION      20 30.214973 13.220559
+HI-REDUCTION      20 29.173085 13.586035
+LO-REDUCTION      20 26.956462 12.939700
+LO-REDUCTION      20 33.486894 13.499521
+LO-REDUCTION      20 14.548280 9.807433
+LO-REDUCTION      20 23.644368 12.519216
+LO-REDUCTION      20 26.944828 12.939066
+HI-REDUCTION      20 7.036366 6.453932
+LO-REDUCTION      20 36.735339 13.786617
+LO-REDUCTION      20 23.657901 12.532735
+LO-REDUCTION      20 26.899722 12.936268
+HI-REDUCTION      20 20.344396 12.372004
+LO-REDUCTION      20 30.168014 13.219535
+LO-REDUCTION      20 36.746882 13.786697
+LO-REDUCTION      20 23.648044 12.517882
+HI-REDUCTION      20 20.389106 12.373736
+HI-REDUCTION      20 17.110254 11.195973
+LO-REDUCTION      20 30.170576 13.217804
+HI-REDUCTION      22 17.618393 12.373151
+HI-REDUCTION      22 25.584119 13.783095
+LO-REDUCTION      20 23.620868 12.526619
+HI-REDUCTION      22 22.069830 13.583759
+HI-REDUCTION      22 17.626418 12.371707
+HI-REDUCTION      22 28.772548 20.532872
+HI-REDUCTION      22 21.313282 13.219150
+HI-REDUCTION      22 21.314440 13.225028
+HI-REDUCTION      22 23.454019 13.502177
+HI-REDUCTION      22 21.321747 13.221924
+HI-REDUCTION      22 17.057551 12.522374
+HI-REDUCTION      22 25.584309 13.783477
+HI-REDUCTION      22 17.054061 12.522344
+HI-REDUCTION      22 21.320724 13.221141
+HI-REDUCTION      22 17.604964 12.371870
+HI-REDUCTION      22 21.307698 13.221440
+HI-REDUCTION      22 17.029365 12.517107
+HI-REDUCTION      22 21.311912 13.220950
+HI-REDUCTION      22 17.617763 12.371126
+HI-REDUCTION      22 20.529181 13.443592
+HI-REDUCTION      22 19.178869 12.935359
+HI-REDUCTION      22 23.445435 13.500653
+HI-REDUCTION      22 23.436097 13.501652
+HI-REDUCTION      22 14.880838 11.177346
+HI-REDUCTION      22 23.433217 13.499071
+HI-REDUCTION      22 25.559682 13.782219
+HI-REDUCTION      22 21.320894 13.219333
+HI-REDUCTION      22 21.312953 13.219635
+HI-REDUCTION      22 14.875918 11.178040
+HI-REDUCTION      22 17.621843 12.372681
+HI-REDUCTION      22 19.182702 12.936191
+HI-REDUCTION      22 21.295382 13.217953
+HI-REDUCTION      22 21.298276 13.218316
+HI-REDUCTION      22 23.450404 13.501927
+HI-REDUCTION      22 21.305809 13.219780
+HI-REDUCTION      22 17.607578 12.377597
+HI-REDUCTION      22 17.601905 12.372591
+HI-REDUCTION      22 17.628655 12.382951
+HI-REDUCTION      22 21.314639 13.220559
+HI-REDUCTION      22 22.070593 13.586035
+HI-REDUCTION      22 19.193739 12.939700
+HI-REDUCTION      22 23.440070 13.499521
+HI-REDUCTION      22 11.764697 9.807433
+HI-REDUCTION      22 17.046684 12.519216
+HI-REDUCTION      22 19.187608 12.939066
+HI-REDUCTION      22 6.888971 6.453932
+HI-REDUCTION      22 25.564163 13.786617
+HI-REDUCTION      22 17.058481 12.532735
+HI-REDUCTION      22 19.168186 12.936268
+HI-REDUCTION      22 17.591964 12.372004
+HI-REDUCTION      22 21.296412 13.219535
+HI-REDUCTION      22 25.568679 13.786697
+HI-REDUCTION      22 17.621619 12.373736
+HI-REDUCTION      22 17.045352 12.517882
+HI-REDUCTION      22 14.887487 11.195973
+HI-REDUCTION      22 21.296706 13.217804
+LO-REDUCTION      24 16.288309 11.869850
+LO-REDUCTION      24 19.488840 13.014580
+REFLECTION        24 20.857762 12.538186
+LO-REDUCTION      24 16.294538 11.868439
+HI-REDUCTION      24 24.569787 20.532872
+HI-REDUCTION      24 17.360473 13.219150
+HI-REDUCTION      24 17.364117 13.225028
+HI-REDUCTION      24 17.365417 13.221924
+HI-REDUCTION      24 14.351907 12.522374
+LO-REDUCTION      24 18.106856 13.151469
+LO-REDUCTION      24 19.489890 13.015506
+HI-REDUCTION      24 14.349786 12.522344
+HI-REDUCTION      22 17.041548 12.526619
+HI-REDUCTION      24 17.363652 13.221141
+LO-REDUCTION      24 16.277141 11.866294
+HI-REDUCTION      24 17.357095 13.221440
+HI-REDUCTION      24 14.335958 12.517107
+HI-REDUCTION      24 17.358769 13.220950
+LO-REDUCTION      24 16.287363 11.866487
+REFLECTION        24 19.453562 13.178693
+HI-REDUCTION      24 15.849884 12.935359
+LO-REDUCTION      24 18.096100 13.147826
+LO-REDUCTION      24 18.089231 13.151321
+HI-REDUCTION      24 13.835212 11.177346
+LO-REDUCTION      24 18.080280 13.145524
+LO-REDUCTION      24 19.462567 13.015513
+HI-REDUCTION      24 17.361993 13.219333
+HI-REDUCTION      24 17.359233 13.219635
+HI-REDUCTION      24 13.831751 11.178040
+LO-REDUCTION      24 16.291171 11.869796
+HI-REDUCTION      24 15.852113 12.936191
+HI-REDUCTION      24 17.348924 13.217953
+HI-REDUCTION      24 17.350966 13.218316
+HI-REDUCTION      24 17.360246 13.220559
+LO-REDUCTION      24 16.275541 11.868594
+LO-REDUCTION      24 16.281529 11.877991
+LO-REDUCTION      24 18.104188 13.150104
+HI-REDUCTION      24 17.354655 13.219780
+LO-REDUCTION      24 16.300720 11.890910
+REFLECTION        24 20.860178 12.538420
+HI-REDUCTION      24 15.862252 12.939700
+LO-REDUCTION      24 18.088871 13.145151
+LO-REDUCTION      24 10.312274 9.807433
+HI-REDUCTION      24 14.345605 12.519216
+HI-REDUCTION      24 15.857797 12.939066
+HI-REDUCTION      24 6.609838 6.453932
+LO-REDUCTION      24 19.477308 13.025510
+HI-REDUCTION      24 15.845569 12.936268
+HI-REDUCTION      24 14.357718 12.532735
+LO-REDUCTION      24 16.267013 11.865873
+HI-REDUCTION      24 17.350361 13.219535
+LO-REDUCTION      24 19.481771 13.025271
+LO-REDUCTION      24 16.291255 11.871569
+HI-REDUCTION      24 14.343107 12.517882
+HI-REDUCTION      26 13.361886 11.869850
+HI-REDUCTION      26 16.263893 13.014580
+HI-REDUCTION      26 16.416048 12.538186
+HI-REDUCTION      26 13.364312 11.868439
+REFLECTION        26 23.122668 19.613017
+HI-REDUCTION      24 13.842440 11.195973
+LO-REDUCTION      26 16.717545 13.219150
+LO-REDUCTION      26 16.726530 13.225028
+LO-REDUCTION      26 16.727251 13.221924
+HI-REDUCTION      24 17.349637 13.217804
+LO-REDUCTION      26 13.951348 12.522374
+HI-REDUCTION      26 16.264739 13.015506
+HI-REDUCTION      26 15.388639 13.151469
+LO-REDUCTION      26 13.947347 12.522344
+LO-REDUCTION      26 16.723285 13.221141
+HI-REDUCTION      26 13.355176 11.866294
+LO-REDUCTION      26 16.711407 13.221440
+LO-REDUCTION      26 13.921261 12.517107
+HI-REDUCTION      24 14.346543 12.526619
+LO-REDUCTION      26 16.714164 13.220950
+HI-REDUCTION      26 13.360092 11.866487
+HI-REDUCTION      26 15.655541 13.178693
+LO-REDUCTION      26 15.321191 12.935359
+HI-REDUCTION      26 12.752674 11.177346
+HI-REDUCTION      26 15.383784 13.147826
+HI-REDUCTION      26 15.383343 13.151321
+HI-REDUCTION      26 15.377002 13.145524
+HI-REDUCTION      26 16.255179 13.015513
+LO-REDUCTION      26 16.719134 13.219333
+LO-REDUCTION      26 16.714776 13.219635
+HI-REDUCTION      26 12.750689 11.178040
+LO-REDUCTION      26 15.325490 12.936191
+HI-REDUCTION      26 13.363456 11.869796
+LO-REDUCTION      26 16.695124 13.217953
+LO-REDUCTION      26 16.716843 13.220559
+HI-REDUCTION      26 13.356384 11.868594
+LO-REDUCTION      26 16.699121 13.218316
+HI-REDUCTION      26 13.363430 11.877991
+HI-REDUCTION      26 15.388011 13.150104
+LO-REDUCTION      26 16.705995 13.219780
+HI-REDUCTION      26 13.379042 11.890910
+LO-REDUCTION      26 15.346794 12.939700
+HI-REDUCTION      26 16.418919 12.538420
+HI-REDUCTION      26 15.380334 13.145151
+HI-REDUCTION      26 9.952457 9.807433
+LO-REDUCTION      26 13.939300 12.519216
+LO-REDUCTION      26 15.337905 12.939066
+HI-REDUCTION      26 6.593312 6.441457
+HI-REDUCTION      26 16.265814 13.025510
+LO-REDUCTION      26 15.314007 12.936268
+HI-REDUCTION      26 13.350771 11.865873
+LO-REDUCTION      26 13.965397 12.532735
+HI-REDUCTION      28 12.562905 11.869850
+LO-REDUCTION      26 16.698386 13.219535
+HI-REDUCTION      26 16.267145 13.025271
+LO-REDUCTION      28 14.988561 13.014580
+LO-REDUCTION      28 14.066641 12.513837
+HI-REDUCTION      28 12.565499 11.868439
+HI-REDUCTION      28 21.178750 19.613017
+HI-REDUCTION      26 13.364263 11.871569
+HI-REDUCTION      28 14.510912 13.219150
+HI-REDUCTION      28 14.520119 13.225028
+HI-REDUCTION      28 14.516009 13.221924
+LO-REDUCTION      26 13.933765 12.517882
+HI-REDUCTION      28 12.852855 12.522374
+LO-REDUCTION      28 14.989300 13.015506
+HI-REDUCTION      28 12.851709 12.522344
+LO-REDUCTION      28 14.373782 13.147602
+HI-REDUCTION      26 12.760429 11.195973
+HI-REDUCTION      28 14.513364 13.221141
+LO-REDUCTION      26 16.696383 13.217804
+HI-REDUCTION      28 12.551138 11.866294
+HI-REDUCTION      28 14.510553 13.221440
+HI-REDUCTION      28 12.841967 12.517107
+HI-REDUCTION      28 14.510517 13.220950
+LO-REDUCTION      28 13.785861 13.092711
+LO-REDUCTION      28 12.179789 11.107078
+HI-REDUCTION      28 12.558238 11.866487
+LO-REDUCTION      28 14.370334 13.145444
+LO-REDUCTION      28 14.371187 13.147480
+HI-REDUCTION      28 13.786022 12.935359
+LO-REDUCTION      28 14.365907 13.143992
+LO-REDUCTION      26 13.943379 12.526619
+LO-REDUCTION      28 14.984060 13.015513
+HI-REDUCTION      28 14.509498 13.219333
+HI-REDUCTION      28 14.509657 13.219635
+LO-REDUCTION      28 12.178565 11.108637
+HI-REDUCTION      28 13.788022 12.936191
+HI-REDUCTION      28 12.565308 11.869796
+HI-REDUCTION      28 14.502159 13.217953
+HI-REDUCTION      28 14.511002 13.220559
+HI-REDUCTION      28 12.555162 11.868594
+HI-REDUCTION      28 14.503946 13.218316
+HI-REDUCTION      28 12.571496 11.877991
+HI-REDUCTION      28 14.506690 13.219780
+LO-REDUCTION      28 14.373410 13.146848
+HI-REDUCTION      28 12.602938 11.890910
+HI-REDUCTION      28 13.800062 12.939700
+LO-REDUCTION      28 14.067762 12.514151
+LO-REDUCTION      28 14.367818 13.143854
+LO-REDUCTION      28 9.888977 9.807433
+HI-REDUCTION      28 13.785337 12.936268
+HI-REDUCTION      28 12.847864 12.519216
+HI-REDUCTION      28 13.795978 12.939066
+HI-REDUCTION      28 6.527039 6.420029
+LO-REDUCTION      28 14.992977 13.025510
+HI-REDUCTION      28 12.545092 11.865873
+HI-REDUCTION      28 12.864413 12.532735
+HI-REDUCTION      30 12.373151 11.869850
+LO-REDUCTION      30 13.583759 12.513837
+LO-REDUCTION      28 14.993594 13.025271
+LO-REDUCTION      30 13.783095 12.933980
+HI-REDUCTION      30 12.371707 11.868439
+LO-REDUCTION      30 20.579946 19.613017
+LO-REDUCTION      30 13.761056 13.221924
+LO-REDUCTION      30 13.756598 13.219150
+LO-REDUCTION      30 13.765874 13.225028
+HI-REDUCTION      28 14.504936 13.219535
+HI-REDUCTION      30 12.654714 12.522374
+LO-REDUCTION      30 13.783477 12.934494
+HI-REDUCTION      30 12.655229 12.522344
+LO-REDUCTION      30 13.502177 13.147602
+HI-REDUCTION      28 12.567618 11.871569
+LO-REDUCTION      30 13.759049 13.221141
+HI-REDUCTION      28 12.844937 12.517882
+LO-REDUCTION      30 13.758227 13.221440
+HI-REDUCTION      28 14.502414 13.217804
+HI-REDUCTION      30 12.653564 12.517107
+LO-REDUCTION      28 12.187895 11.115707
+HI-REDUCTION      30 12.371870 11.866294
+HI-REDUCTION      30 13.443592 13.092711
+LO-REDUCTION      30 13.757681 13.220950
+HI-REDUCTION      30 12.090562 11.107078
+HI-REDUCTION      30 12.371126 11.866487
+LO-REDUCTION      30 13.500653 13.145444
+LO-REDUCTION      30 13.501652 13.147480
+LO-REDUCTION      30 13.499071 13.143992
+LO-REDUCTION      30 13.782219 12.935188
+LO-REDUCTION      30 13.134644 12.935359
+LO-REDUCTION      30 13.756233 13.219635
+LO-REDUCTION      30 13.755583 13.219333
+LO-REDUCTION      30 13.136172 12.936191
+HI-REDUCTION      30 12.091501 11.108637
+HI-REDUCTION      30 12.372681 11.869796
+HI-REDUCTION      28 12.854560 12.526619
+LO-REDUCTION      30 13.751564 13.217953
+LO-REDUCTION      30 13.757567 13.220559
+HI-REDUCTION      30 12.372591 11.868594
+LO-REDUCTION      30 13.752708 13.218316
+LO-REDUCTION      30 13.754956 13.219780
+HI-REDUCTION      30 12.377597 11.877991
+LO-REDUCTION      30 13.501927 13.146848
+HI-REDUCTION      30 12.382951 11.890910
+LO-REDUCTION      30 13.144902 12.939700
+LO-REDUCTION      30 13.586035 12.514151
+LO-REDUCTION      30 13.499521 13.143854
+LO-REDUCTION      30 13.135592 12.936268
+HI-REDUCTION      30 9.874623 9.805797
+HI-REDUCTION      30 12.653384 12.519216
+LO-REDUCTION      30 13.142511 12.939066
+HI-REDUCTION      30 6.453932 6.420029
+LO-REDUCTION      30 13.786617 12.940536
+HI-REDUCTION      30 12.372004 11.865873
+HI-REDUCTION      32 12.335894 11.869850
+HI-REDUCTION      32 12.758994 12.513837
+HI-REDUCTION      30 12.659910 12.532735
+LO-REDUCTION      32 13.052693 12.933980
+EXTENSION         32 20.532872 18.577818
+HI-REDUCTION      32 12.336688 11.868439
+LO-REDUCTION      30 13.786697 12.940328
+HI-REDUCTION      32 13.287820 13.221924
+HI-REDUCTION      32 13.277989 13.219150
+HI-REDUCTION      32 13.296789 13.225028
+HI-REDUCTION      32 12.568475 12.522374
+HI-REDUCTION      32 12.569235 12.522344
+LO-REDUCTION      32 13.053245 12.934494
+HI-REDUCTION      32 13.279929 13.147602
+HI-REDUCTION      32 13.286981 13.221141
+LO-REDUCTION      30 13.754199 13.219535
+HI-REDUCTION      32 13.289062 13.221440
+HI-REDUCTION      30 12.373736 11.871569
+HI-REDUCTION      32 12.565287 12.517107
+HI-REDUCTION      32 13.180576 13.051914
+HI-REDUCTION      32 12.330765 11.866294
+LO-REDUCTION      30 13.751548 13.217804
+HI-REDUCTION      32 11.195590 11.083018
+HI-REDUCTION      30 12.653646 12.517882
+HI-REDUCTION      32 13.287590 13.220950
+HI-REDUCTION      30 12.094041 11.115707
+HI-REDUCTION      32 12.333557 11.866487
+HI-REDUCTION      32 13.277770 13.145444
+HI-REDUCTION      32 13.279927 13.147480
+HI-REDUCTION      32 13.276850 13.143992
+LO-REDUCTION      32 13.053097 12.935188
+HI-REDUCTION      32 13.016616 12.936191
+HI-REDUCTION      32 13.282703 13.219333
+HI-REDUCTION      32 13.282106 13.219635
+HI-REDUCTION      32 11.195874 11.084201
+HI-REDUCTION      32 13.015384 12.935359
+HI-REDUCTION      32 12.336847 11.869796
+HI-REDUCTION      32 13.278910 13.217953
+HI-REDUCTION      30 12.657773 12.526619
+HI-REDUCTION      32 13.285566 13.220559
+HI-REDUCTION      32 13.279157 13.218316
+HI-REDUCTION      32 13.285032 13.219780
+HI-REDUCTION      32 12.332825 11.868594
+HI-REDUCTION      32 12.340682 11.877636
+HI-REDUCTION      32 13.278813 13.146848
+HI-REDUCTION      32 12.355087 11.886787
+HI-REDUCTION      32 13.020753 12.939700
+HI-REDUCTION      32 12.760626 12.514151
+HI-REDUCTION      32 13.016737 12.936268
+HI-REDUCTION      32 13.276218 13.143854
+HI-REDUCTION      32 9.821481 9.805797
+HI-REDUCTION      32 12.565590 12.519216
+HI-REDUCTION      32 13.020263 12.939066
+LO-REDUCTION      32 13.059105 12.940536
+HI-REDUCTION      32 6.441457 6.405914
+HI-REDUCTION      34 12.590275 12.513837
+HI-REDUCTION      32 12.328417 11.865873
+LO-REDUCTION      34 12.055321 11.869850
+HI-REDUCTION      34 20.102470 18.577818
+HI-REDUCTION      34 13.014580 12.933980
+HI-REDUCTION      34 13.281722 13.163974
+LO-REDUCTION      34 12.055471 11.868439
+HI-REDUCTION      34 13.277161 13.157725
+HI-REDUCTION      34 13.286886 13.170269
+HI-REDUCTION      32 12.579456 12.532735
+LO-REDUCTION      32 13.058981 12.940328
+HI-REDUCTION      34 12.562624 12.515944
+HI-REDUCTION      34 12.562368 12.516316
+HI-REDUCTION      34 13.015506 12.934494
+HI-REDUCTION      34 13.212804 13.147602
+HI-REDUCTION      34 13.280292 13.162997
+HI-REDUCTION      32 13.283762 13.219535
+HI-REDUCTION      34 13.280627 13.164211
+HI-REDUCTION      34 12.556670 12.512145
+HI-REDUCTION      34 11.177346 11.004614
+HI-REDUCTION      34 13.178693 12.973559
+HI-REDUCTION      34 13.279834 13.163168
+HI-REDUCTION      32 12.338029 11.871569
+HI-REDUCTION      34 12.049436 11.866294
+HI-REDUCTION      32 13.278125 13.217804
+HI-REDUCTION      34 13.210895 13.145444
+HI-REDUCTION      34 13.212527 13.147480
+LO-REDUCTION      34 12.051954 11.866487
+HI-REDUCTION      34 13.209312 13.143992
+HI-REDUCTION      32 12.565519 12.517882
+HI-REDUCTION      32 11.204283 11.089720
+HI-REDUCTION      34 13.015513 12.935188
+HI-REDUCTION      34 12.971716 12.936191
+HI-REDUCTION      34 13.277763 13.159823
+HI-REDUCTION      34 13.277188 13.159756
+HI-REDUCTION      34 11.178040 11.005443
+LO-REDUCTION      34 12.056185 11.869796
+HI-REDUCTION      34 13.274713 13.157283
+HI-REDUCTION      34 12.970406 12.935359
+HI-REDUCTION      34 13.279261 13.161991
+HI-REDUCTION      34 13.275401 13.157656
+HI-REDUCTION      34 13.277772 13.161211
+HI-REDUCTION      32 12.574457 12.526619
+HI-REDUCTION      34 12.063025 11.877636
+HI-REDUCTION      34 13.212308 13.146848
+HI-REDUCTION      34 12.080990 11.886787
+HI-REDUCTION      34 12.052359 11.868594
+HI-REDUCTION      34 12.971642 12.936268
+HI-REDUCTION      34 12.978343 12.939700
+HI-REDUCTION      34 12.590075 12.514151
+HI-REDUCTION      34 13.209476 13.143854
+HI-REDUCTION      34 9.812886 9.801922
+LO-REDUCTION      36 12.547669 12.513837
+HI-REDUCTION      34 12.559353 12.513164
+HI-REDUCTION      34 12.976807 12.939066
+HI-REDUCTION      36 11.936584 11.869850
+EXTENSION         36 19.722434 17.653031
+HI-REDUCTION      36 13.242346 13.163974
+HI-REDUCTION      34 12.047334 11.865873
+HI-REDUCTION      36 12.986786 12.933980
+HI-REDUCTION      36 11.934811 11.868439
+HI-REDUCTION      34 6.426301 6.405914
+HI-REDUCTION      34 13.025510 12.940536
+HI-REDUCTION      36 13.236709 13.157725
+HI-REDUCTION      36 13.247621 13.170269
+HI-REDUCTION      36 12.534583 12.515944
+HI-REDUCTION      36 12.534975 12.516316
+HI-REDUCTION      36 12.987615 12.934494
+HI-REDUCTION      36 13.165112 13.147602
+HI-REDUCTION      34 12.572620 12.526001
+HI-REDUCTION      34 13.025271 12.940328
+HI-REDUCTION      36 13.241773 13.162997
+HI-REDUCTION      34 13.277352 13.160567
+HI-REDUCTION      36 13.242953 13.164211
+HI-REDUCTION      36 12.532120 12.512145
+HI-REDUCTION      36 11.107078 10.984399
+HI-REDUCTION      36 13.092711 12.973559
+HI-REDUCTION      36 13.242083 13.163168
+LO-REDUCTION      36 12.008088 11.866294
+HI-REDUCTION      36 13.162837 13.145444
+HI-REDUCTION      36 13.165063 13.147480
+HI-REDUCTION      36 11.933133 11.866487
+LO-REDUCTION      34 12.057928 11.871569
+HI-REDUCTION      36 13.161536 13.143992
+HI-REDUCTION      34 13.274499 13.156826
+HI-REDUCTION      36 12.989371 12.935188
+HI-REDUCTION      36 12.943722 12.936191
+HI-REDUCTION      36 11.108637 10.985607
+HI-REDUCTION      36 13.238965 13.159823
+HI-REDUCTION      36 13.239210 13.159756
+HI-REDUCTION      34 11.195973 11.014195
+HI-REDUCTION      34 12.557731 12.512521
+HI-REDUCTION      36 13.237038 13.157283
+HI-REDUCTION      36 11.936308 11.869796
+HI-REDUCTION      36 12.942511 12.935359
+HI-REDUCTION      36 13.240943 13.161991
+HI-REDUCTION      36 13.237223 13.157656
+HI-REDUCTION      36 13.240552 13.161211
+HI-REDUCTION      34 12.566188 12.520874
+HI-REDUCTION      36 13.164170 13.146848
+LO-REDUCTION      36 12.032261 11.886787
+LO-REDUCTION      36 12.018600 11.877636
+LO-REDUCTION      36 12.010352 11.868594
+HI-REDUCTION      36 12.943845 12.936268
+HI-REDUCTION      36 12.949711 12.939700
+LO-REDUCTION      36 12.548725 12.514151
+HI-REDUCTION      36 13.161176 13.143854
+HI-REDUCTION      36 9.807433 9.798468
+HI-REDUCTION      38 12.538186 12.513837
+LO-REDUCTION      38 19.613017 17.653031
+LO-REDUCTION      38 11.876351 11.860722
+HI-REDUCTION      38 13.221924 13.157617
+HI-REDUCTION      36 12.532593 12.513164
+HI-REDUCTION      38 12.966845 12.933980
+HI-REDUCTION      36 12.948040 12.939066
+LO-REDUCTION      38 11.875623 11.859962
+LO-REDUCTION      36 12.006604 11.865873
+HI-REDUCTION      38 13.219150 13.152765
+HI-REDUCTION      38 13.225028 13.162544
+HI-REDUCTION      36 12.997798 12.940536
+HI-REDUCTION      36 6.420029 6.404261
+HI-REDUCTION      38 12.522374 12.511429
+HI-REDUCTION      38 12.522344 12.511701
+HI-REDUCTION      38 13.158733 13.147602
+HI-REDUCTION      38 12.967481 12.934494
+HI-REDUCTION      36 13.239862 13.160567
+HI-REDUCTION      38 13.221141 13.156823
+HI-REDUCTION      36 12.541987 12.526001
+HI-REDUCTION      36 12.997406 12.940328
+HI-REDUCTION      38 13.221440 13.157752
+HI-REDUCTION      38 12.517107 12.508035
+LO-REDUCTION      38 11.083018 10.984399
+HI-REDUCTION      38 13.051914 12.955642
+HI-REDUCTION      38 13.220950 13.156936
+HI-REDUCTION      38 13.156513 13.145444
+HI-REDUCTION      38 13.158547 13.147480
+HI-REDUCTION      38 11.876193 11.866294
+LO-REDUCTION      38 11.873174 11.857991
+HI-REDUCTION      38 13.154892 13.143992
+HI-REDUCTION      38 12.967763 12.935188
+LO-REDUCTION      38 11.084201 10.985607
+HI-REDUCTION      38 12.941799 12.934513
+HI-REDUCTION      36 11.938126 11.871569
+HI-REDUCTION      36 13.236595 13.156826
+HI-REDUCTION      38 13.219635 13.154352
+HI-REDUCTION      38 13.219333 13.154268
+HI-REDUCTION      36 11.115707 10.996938
+HI-REDUCTION      38 13.217953 13.152335
+HI-REDUCTION      36 12.532327 12.512521
+LO-REDUCTION      38 11.876677 11.860921
+HI-REDUCTION      38 12.940254 12.933310
+HI-REDUCTION      38 13.220559 13.156032
+HI-REDUCTION      38 13.218316 13.152642
+HI-REDUCTION      38 13.219780 13.155389
+HI-REDUCTION      38 13.158034 13.146848
+HI-REDUCTION      38 11.894323 11.886787
+HI-REDUCTION      38 11.884855 11.877636
+HI-REDUCTION      36 12.538421 12.520874
+HI-REDUCTION      38 11.877873 11.868594
+HI-REDUCTION      38 12.941846 12.934613
+HI-REDUCTION      38 12.948626 12.939700
+HI-REDUCTION      38 12.538420 12.514151
+HI-REDUCTION      38 13.154872 13.143854
+HI-REDUCTION      40 12.524982 12.513837
+EXTENSION         40 18.577818 15.349721
+LO-REDUCTION      38 9.805797 9.796063
+HI-REDUCTION      40 13.178435 13.157617
+HI-REDUCTION      40 11.871828 11.856249
+LO-REDUCTION      40 12.951241 12.933980
+HI-REDUCTION      40 11.870801 11.855339
+HI-REDUCTION      38 12.519216 12.509021
+HI-REDUCTION      40 13.173926 13.152765
+HI-REDUCTION      38 11.875925 11.865873
+HI-REDUCTION      40 13.183374 13.162544
+HI-REDUCTION      38 12.947792 12.939066
+HI-REDUCTION      40 12.518035 12.511259
+HI-REDUCTION      40 12.518043 12.511356
+HI-REDUCTION      38 12.974562 12.940536
+Exiting from Nelder Mead minimizer
+    40 function evaluations used
+HI-REDUCTION      38 6.409614 6.402860
+LO-REDUCTION      40 12.952014 12.934494
+  Nelder-Mead direct search function minimizer
+HI-REDUCTION      38 13.219535 13.154898
+HI-REDUCTION      40 13.177324 13.156823
+HI-REDUCTION      40 13.177960 13.157752
+HI-REDUCTION      40 12.513282 12.506678
+HI-REDUCTION      38 12.532735 12.520044
+HI-REDUCTION      38 12.974366 12.940328
+HI-REDUCTION      40 11.004614 10.958809
+HI-REDUCTION      40 12.981166 12.955642
+HI-REDUCTION      40 13.177162 13.156936
+Exiting from Nelder Mead minimizer
+    40 function evaluations used
+Exiting from Nelder Mead minimizer
+    40 function evaluations used
+HI-REDUCTION      40 11.869426 11.853267
+Exiting from Nelder Mead minimizer
+    40 function evaluations used
+REFLECTION        40 11.869705 11.856717
+HI-REDUCTION      40 11.005443 10.959950
+LO-REDUCTION      40 12.952519 12.935188
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+LO-REDUCTION      40 12.941496 12.934513
+  Nelder-Mead direct search function minimizer
+HI-REDUCTION      40 13.174931 13.154352
+HI-REDUCTION      40 13.174548 13.154268
+HI-REDUCTION      40 13.172492 13.152335
+HI-REDUCTION      38 13.217804 13.151984
+LO-REDUCTION      38 11.878346 11.862358
+LO-REDUCTION      38 11.089720 10.996938
+HI-REDUCTION      38 12.517882 12.508391
+HI-REDUCTION      40 11.871776 11.856418
+LO-REDUCTION      40 12.940120 12.933310
+HI-REDUCTION      40 13.176454 13.156032
+HI-REDUCTION      40 13.172983 13.152642
+HI-REDUCTION      40 13.175409 13.155389
+REFLECTION        40 11.891654 11.881355
+function value for initial parameters = 60.274494
+  Scaled convergence tolerance is 0.00735774
+Stepsize computed as 0.690776
+Exiting from Nelder Mead minimizer
+    40 function evaluations used
+REFLECTION        40 11.879707 11.868058
+  Nelder-Mead direct search function minimizer
+HI-REDUCTION      38 12.526619 12.515566
+LO-REDUCTION      40 12.941529 12.934613
+REFLECTION        40 11.871815 11.859083
+HI-REDUCTION      40 12.947355 12.939700
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+Exiting from Nelder Mead minimizer
+    40 function evaluations used
+HI-REDUCTION      40 12.525683 12.514151
+function value for initial parameters = 67.209154
+  Scaled convergence tolerance is 0.00820426
+Stepsize computed as 0.690776
+function value for initial parameters = 40.178218
+  Scaled convergence tolerance is 0.00490458
+Stepsize computed as 0.690776
+  Nelder-Mead direct search function minimizer
+LO-REDUCTION      42 17.775920 15.349721
+HI-REDUCTION      42 13.167306 13.155891
+function value for initial parameters = 61.077789
+  Scaled convergence tolerance is 0.0074558
+Stepsize computed as 0.690776
+HI-REDUCTION      42 11.869850 11.856249
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+HI-REDUCTION      40 9.801922 9.796063
+HI-REDUCTION      42 11.868439 11.855339
+HI-REDUCTION      42 13.171388 13.160874
+HI-REDUCTION      42 13.163551 13.151232
+HI-REDUCTION      40 12.946115 12.939066
+REFLECTION        40 11.869033 11.855928
+HI-REDUCTION      40 12.515141 12.508352
+HI-REDUCTION      42 12.516316 12.509748
+HI-REDUCTION      42 12.515944 12.509621
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+LO-REDUCTION      40 12.960741 12.940536
+  Nelder-Mead direct search function minimizer
+HI-REDUCTION      40 13.175014 13.154898
+HI-REDUCTION      42 13.166984 13.155649
+HI-REDUCTION      40 6.405914 6.401839
+HI-REDUCTION      42 12.512145 12.505301
+HI-REDUCTION      42 13.166422 13.154887
+function value for initial parameters = 73.992498
+  Scaled convergence tolerance is 0.0090323
+Stepsize computed as 0.690776
+REFLECTION        42 10.998438 10.955521
+HI-REDUCTION      42 12.973559 12.943975
+HI-REDUCTION      40 12.527631 12.520044
+LO-REDUCTION      40 12.960484 12.940328
+HI-REDUCTION      42 13.166321 13.154833
+HI-REDUCTION      42 11.869318 11.852116
+HI-REDUCTION      42 11.866487 11.853267
+REFLECTION        42 10.999299 10.956867
+function value for initial parameters = 60.277785
+  Scaled convergence tolerance is 0.00735814
+Stepsize computed as 0.690776
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+HI-REDUCTION      42 13.164441 13.152455
+HI-REDUCTION      42 13.164152 13.152168
+  Nelder-Mead direct search function minimizer
+HI-REDUCTION      42 13.162479 13.150170
+HI-REDUCTION      40 13.172220 13.151984
+HI-REDUCTION      40 11.014195 10.967271
+HI-REDUCTION      40 11.873043 11.857988
+HI-REDUCTION      42 13.165715 13.154045
+HI-REDUCTION      42 11.869796 11.856418
+HI-REDUCTION      42 13.162864 13.150595
+HI-REDUCTION      40 12.513960 12.507277
+HI-REDUCTION      42 13.164898 13.153148
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+HI-REDUCTION      42 11.890910 11.874085
+function value for initial parameters = 54.088929
+  Scaled convergence tolerance is 0.00660267
+Stepsize computed as 0.690776
+  Nelder-Mead direct search function minimizer
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+HI-REDUCTION      42 11.877991 11.862290
+HI-REDUCTION      40 12.522044 12.515566
+HI-REDUCTION      42 11.870946 11.854220
+  Nelder-Mead direct search function minimizer
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+  Nelder-Mead direct search function minimizer
+HI-REDUCTION      44 13.163974 13.152105
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+LO-REDUCTION      44 17.653031 15.349721
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+function value for initial parameters = 39.873598
+  Scaled convergence tolerance is 0.0048674
+Stepsize computed as 0.690776
+  Nelder-Mead direct search function minimizer
+HI-REDUCTION      44 13.170269 13.156788
+REFLECTION        42 9.798468 9.794012
+  Nelder-Mead direct search function minimizer
+HI-REDUCTION      44 13.157725 13.147694
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+HI-REDUCTION      42 11.868892 11.852587
+HI-REDUCTION      42 12.513164 12.506835
+  Nelder-Mead direct search function minimizer
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+HI-REDUCTION      44 13.164211 13.151940
+BUILD              4 60.274494 54.962340
+  Nelder-Mead direct search function minimizer
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+HI-REDUCTION      42 13.164566 13.152726
+HI-REDUCTION      44 13.162997 13.151194
+function value for initial parameters = 67.674744
+  Scaled convergence tolerance is 0.00826109
+Stepsize computed as 0.690776
+  Nelder-Mead direct search function minimizer
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+HI-REDUCTION      42 6.404261 6.401222
+  Nelder-Mead direct search function minimizer
+LO-REDUCTION      44 10.984399 10.955521
+function value for initial parameters = 61.120400
+  Scaled convergence tolerance is 0.007461
+Stepsize computed as 0.690776
+HI-REDUCTION      44 12.963179 12.943975
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+HI-REDUCTION      42 12.526001 12.519170
+HI-REDUCTION      44 13.163168 13.151171
+function value for initial parameters = 40.637881
+  Scaled convergence tolerance is 0.00496069
+Stepsize computed as 0.690776
+  Nelder-Mead direct search function minimizer
+LO-REDUCTION      44 11.866294 11.852116
+LO-REDUCTION      44 10.985607 10.956867
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+BUILD              4 67.209154 61.186925
+BUILD              4 40.178218 36.651535
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 47.045962
+  Scaled convergence tolerance is 0.00574293
+Stepsize computed as 0.690776
+HI-REDUCTION      44 13.157283 13.146797
+HI-REDUCTION      44 13.159823 13.148902
+HI-REDUCTION      44 13.159756 13.148660
+function value for initial parameters = 46.888152
+  Scaled convergence tolerance is 0.00572367
+Stepsize computed as 0.690776
+HI-REDUCTION      42 13.162246 13.149866
+REFLECTION        42 11.008083 10.966121
+BUILD              4 61.077789 55.396407
+HI-REDUCTION      42 11.871569 11.857988
+HI-REDUCTION      44 13.157656 13.147178
+function value for initial parameters = 73.993573
+  Scaled convergence tolerance is 0.00903243
+Stepsize computed as 0.690776
+HI-REDUCTION      44 13.161991 13.150411
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+HI-REDUCTION      42 12.512521 12.505848
+HI-REDUCTION      44 13.161211 13.149608
+LO-REDUCTION      44 11.886787 11.872831
+function value for initial parameters = 66.592365
+  Scaled convergence tolerance is 0.00812897
+Stepsize computed as 0.690776
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 47.041320
+  Scaled convergence tolerance is 0.00574236
+Stepsize computed as 0.690776
+BUILD              4 73.992498 67.347491
+HI-REDUCTION      44 11.868594 11.854220
+function value for initial parameters = 60.488590
+  Scaled convergence tolerance is 0.00738388
+Stepsize computed as 0.690776
+LO-REDUCTION      44 11.877636 11.862289
+HI-REDUCTION      42 12.520874 12.513862
+function value for initial parameters = 53.413456
+  Scaled convergence tolerance is 0.00652021
+Stepsize computed as 0.690776
+BUILD              4 60.277785 54.941993
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+  Nelder-Mead direct search function minimizer
+LO-REDUCTION      46 15.701074 15.349721
+function value for initial parameters = 74.340832
+  Scaled convergence tolerance is 0.00907482
+Stepsize computed as 0.690776
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+HI-REDUCTION      44 11.865873 11.852587
+  Nelder-Mead direct search function minimizer
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+LO-REDUCTION       6 60.274494 54.962340
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+BUILD              4 54.088929 49.133947
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 60.892025
+  Scaled convergence tolerance is 0.00743312
+Stepsize computed as 0.690776
+HI-REDUCTION      44 13.160567 13.149203
+  Nelder-Mead direct search function minimizer
+HI-REDUCTION      44 6.402860 6.400829
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+HI-REDUCTION      46 11.856717 11.851503
+  Nelder-Mead direct search function minimizer
+HI-REDUCTION      46 12.955642 12.943780
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+function value for initial parameters = 47.311237
+  Scaled convergence tolerance is 0.00577531
+Stepsize computed as 0.690776
+  Nelder-Mead direct search function minimizer
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+LO-REDUCTION       6 40.178218 36.651535
+LO-REDUCTION       6 67.209154 61.186925
+HI-REDUCTION      44 13.156826 13.146503
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+function value for initial parameters = 47.322991
+  Scaled convergence tolerance is 0.00577675
+Stepsize computed as 0.690776
+LO-REDUCTION      44 10.996938 10.966121
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+LO-REDUCTION       6 61.077789 55.396407
+BUILD              4 39.873598 36.477548
+  Nelder-Mead direct search function minimizer
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+HI-REDUCTION      46 11.881355 11.871438
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 32.312743
+  Scaled convergence tolerance is 0.00394444
+Stepsize computed as 0.690776
+  Nelder-Mead direct search function minimizer
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 33.720343
+  Scaled convergence tolerance is 0.00411627
+Stepsize computed as 0.690776
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+  Nelder-Mead direct search function minimizer
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+function value for initial parameters = 33.675429
+  Scaled convergence tolerance is 0.00411079
+Stepsize computed as 0.690776
+  Nelder-Mead direct search function minimizer
+LO-REDUCTION       6 73.992498 67.347491
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 40.814580
+  Scaled convergence tolerance is 0.00498226
+Stepsize computed as 0.690776
+BUILD              4 67.674744 61.452694
+BUILD              4 61.120400 56.571659
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+  Nelder-Mead direct search function minimizer
+HI-REDUCTION      46 11.868058 11.861029
+BUILD              4 40.637881 36.894210
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+function value for initial parameters = 80.338137
+  Scaled convergence tolerance is 0.00980692
+Stepsize computed as 0.690776
+  Nelder-Mead direct search function minimizer
+LO-REDUCTION       6 60.277785 54.941993
+function value for initial parameters = 53.917541
+  Scaled convergence tolerance is 0.00658175
+Stepsize computed as 0.690776
+BUILD              4 47.045962 42.839398
+EXTENSION         48 15.443032 14.992257
+BUILD              4 46.888152 42.746886
+BUILD              4 73.993573 67.349982
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+function value for initial parameters = 47.705404
+  Scaled convergence tolerance is 0.00582343
+Stepsize computed as 0.690776
+function value for initial parameters = 74.049201
+  Scaled convergence tolerance is 0.00903922
+Stepsize computed as 0.690776
+  Nelder-Mead direct search function minimizer
+function value for initial parameters = 46.768299
+  Scaled convergence tolerance is 0.00570904
+Stepsize computed as 0.690776
+BUILD              4 66.592365 60.835144
+function value for initial parameters = 39.244928
+  Scaled convergence tolerance is 0.00479066
+Stepsize computed as 0.690776
+EXTENSION          8 58.747176 49.949793
+function value for initial parameters = 33.395368
+  Scaled convergence tolerance is 0.0040766
+Stepsize computed as 0.690776
+BUILD              4 47.041320 42.828509
+function value for initial parameters = 40.053454
+  Scaled convergence tolerance is 0.00488935
+Stepsize computed as 0.690776
+LO-REDUCTION       6 54.088929 49.133947
+function value for initial parameters = 26.757767
+  Scaled convergence tolerance is 0.00326634
+Stepsize computed as 0.690776
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+  Nelder-Mead direct search function minimizer
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+BUILD              4 60.488590 55.070598
+function value for initial parameters = 33.981468
+  Scaled convergence tolerance is 0.00414814
+Stepsize computed as 0.690776
+  Nelder-Mead direct search function minimizer
+Exiting from Nelder Mead minimizer
+    48 function evaluations used
+function value for initial parameters = 53.101631
+  Scaled convergence tolerance is 0.00648215
+Stepsize computed as 0.690776
+Exiting from Nelder Mead minimizer
+    48 function evaluations used
+  Nelder-Mead direct search function minimizer
+BUILD              4 53.413456 48.762809
+EXTENSION          8 65.734067 55.734146
+BUILD              4 74.340832 67.530944
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+EXTENSION          8 39.142804 33.312828
+HI-REDUCTION      46 10.970409 10.966121
+LO-REDUCTION       6 39.873598 36.477548
+  Nelder-Mead direct search function minimizer
+EXTENSION          8 60.155613 50.749347
+REFLECTION        48 11.874085 11.868789
+function value for initial parameters = 40.447478
+  Scaled convergence tolerance is 0.00493745
+Stepsize computed as 0.690776
+EXTENSION          8 72.361709 61.360404
+LO-REDUCTION       6 67.674744 61.452694
+BUILD              4 60.892025 55.301668
+LO-REDUCTION       6 61.120400 56.571659
+function value for initial parameters = 59.284645
+  Scaled convergence tolerance is 0.00723691
+Stepsize computed as 0.690776
+function value for initial parameters = 59.973924
+  Scaled convergence tolerance is 0.00732105
+Stepsize computed as 0.690776
+Exiting from Nelder Mead minimizer
+    48 function evaluations used
+LO-REDUCTION       6 40.637881 36.894210
+EXTENSION          8 58.859937 49.955233
+function value for initial parameters = 39.828302
+  Scaled convergence tolerance is 0.00486187
+Stepsize computed as 0.690776
+BUILD              4 47.311237 42.977169
+LO-REDUCTION       6 47.045962 42.839398
+HI-REDUCTION      50 15.394420 14.992257
+LO-REDUCTION       6 73.993573 67.349982
+LO-REDUCTION       6 46.888152 42.746886
+BUILD              4 47.322991 42.996311
+function value for initial parameters = 46.784437
+  Scaled convergence tolerance is 0.00571101
+Stepsize computed as 0.690776
+BUILD              4 33.720343 30.676511
+LO-REDUCTION       6 47.041320 42.828509
+BUILD              4 32.312743 29.868565
+EXTENSION         10 56.139829 41.287555
+BUILD              4 33.675429 30.643023
+LO-REDUCTION       6 66.592365 60.835144
+EXTENSION          8 53.125558 44.917981
+BUILD              4 40.814580 36.992167
+LO-REDUCTION       6 60.488590 55.070598
+BUILD              4 80.338137 73.245098
+BUILD              4 53.917541 49.033939
+LO-REDUCTION       6 53.413456 48.762809
+LO-REDUCTION       6 74.340832 67.530944
+EXTENSION         10 62.614239 45.885397
+HI-REDUCTION      48 10.970194 10.965749
+BUILD              4 47.705404 43.197892
+EXTENSION         10 37.426572 27.590474
+EXTENSION         10 56.942112 41.402016
+BUILD              4 39.244928 36.110252
+EXTENSION          8 38.655757 33.010685
+Exiting from Nelder Mead minimizer
+    50 function evaluations used
+BUILD              4 74.049201 67.378639
+BUILD              4 46.768299 42.683281
+  Nelder-Mead direct search function minimizer
+BUILD              4 33.395368 30.502294
+LO-REDUCTION       6 60.892025 55.301668
+EXTENSION          8 66.475852 56.195967
+BUILD              4 26.757767 24.420036
+BUILD              4 40.053454 36.579721
+EXTENSION          8 58.851168 50.800784
+EXTENSION         10 68.935499 50.467325
+EXTENSION          8 39.972947 33.772826
+BUILD              4 33.981468 30.815807
+BUILD              4 53.101631 48.581094
+EXTENSION         10 56.143702 41.277418
+LO-REDUCTION       6 47.311237 42.977169
+EXTENSION          8 46.012930 39.029350
+EXTENSION          8 72.354331 61.363701
+EXTENSION          8 45.768065 38.870871
+LO-REDUCTION       6 33.720343 30.676511
+LO-REDUCTION      52 15.349721 14.992257
+LO-REDUCTION       6 47.322991 42.996311
+EXTENSION          8 46.035635 39.021243
+BUILD              4 40.447478 36.785712
+LO-REDUCTION       6 33.675429 30.643023
+function value for initial parameters = 66.447594
+  Scaled convergence tolerance is 0.00811129
+Stepsize computed as 0.690776
+LO-REDUCTION       6 32.312743 29.868565
+EXTENSION         12 54.962340 33.287570
+EXTENSION          8 64.734878 55.119136
+EXTENSION         10 50.415446 36.795206
+BUILD              4 59.284645 54.377469
+EXTENSION          8 59.158425 50.164534
+BUILD              4 59.973924 54.781615
+LO-REDUCTION       6 40.814580 36.992167
+LO-REDUCTION       6 80.338137 73.245098
+LO-REDUCTION       6 53.917541 49.033939
+EXTENSION          8 51.971046 44.241106
+BUILD              4 39.828302 36.442202
+EXTENSION         12 61.186925 36.949058
+EXTENSION          8 72.994191 61.705913
+Exiting from Nelder Mead minimizer
+    50 function evaluations used
+BUILD              4 46.784437 42.693464
+LO-REDUCTION       6 47.705404 43.197892
+  Nelder-Mead direct search function minimizer
+EXTENSION         12 36.651535 22.355467
+EXTENSION         10 37.122623 27.542739
+LO-REDUCTION       6 39.244928 36.110252
+EXTENSION         12 55.396407 33.343631
+LO-REDUCTION       6 46.768299 42.683281
+LO-REDUCTION       6 74.049201 67.378639
+LO-REDUCTION       6 33.395368 30.502294
+EXTENSION          8 59.800913 50.563714
+EXTENSION         10 63.078811 45.957984
+LO-REDUCTION       6 40.053454 36.579721
+LO-REDUCTION       6 26.757767 24.420036
+EXTENSION         10 56.987110 44.374987
+EXTENSION         12 67.347491 40.599543
+EXTENSION         10 37.886326 27.653990
+LO-REDUCTION       6 53.101631 48.581094
+LO-REDUCTION       6 33.981468 30.815807
+EXTENSION          8 46.501181 39.289708
+EXTENSION         12 54.941993 33.282839
+EXTENSION         10 43.833819 32.177969
+function value for initial parameters = 60.183032
+  Scaled convergence tolerance is 0.00734658
+Stepsize computed as 0.690776
+EXTENSION         10 68.937175 50.469373
+EXTENSION          8 33.031014 28.003544
+EXTENSION          8 46.459617 39.303180
+HI-REDUCTION      54 15.335214 14.992257
+EXTENSION          8 33.002941 27.960702
+EXTENSION         10 43.675829 32.150978
+EXTENSION         10 43.828240 32.171224
+EXTENSION         10 61.997932 45.787066
+LO-REDUCTION       6 40.447478 36.785712
+EXTENSION          8 30.786235 26.608137
+EXTENSION         14 49.949793 16.707649
+LO-REDUCTION       6 59.284645 54.377469
+EXTENSION         10 56.354100 41.314908
+EXTENSION         12 49.133947 29.680820
+EXTENSION          8 78.354720 66.557681
+LO-REDUCTION       6 59.973924 54.781615
+EXTENSION          8 40.269641 33.945584
+EXTENSION          8 52.861926 44.747166
+EXTENSION         10 49.739593 36.694068
+EXTENSION         10 69.283068 50.514067
+EXTENSION         14 55.734146 18.107583
+LO-REDUCTION       6 39.828302 36.442202
+EXTENSION          8 37.681894 32.388749
+LO-REDUCTION       6 46.784437 42.693464
+EXTENSION          8 47.151204 39.681577
+EXTENSION         14 33.312828 12.557556
+EXTENSION         12 36.477548 22.332305
+EXTENSION         14 50.749347 16.724504
+EXTENSION          8 45.553779 38.752848
+EXTENSION         10 56.756382 41.378132
+EXTENSION          8 72.459625 61.419496
+EXTENSION          8 32.465153 27.685923
+EXTENSION         12 61.452694 36.984037
+BUILD              4 66.447594 60.764888
+EXTENSION          8 26.083337 22.198834
+EXTENSION          8 51.489188 43.933524
+EXTENSION          8 38.948436 33.190172
+EXTENSION         12 56.571659 37.100277
+EXTENSION         14 61.360404 19.482716
+EXTENSION         12 36.894210 22.387658
+EXTENSION          8 33.499394 28.265685
+EXTENSION         10 44.097764 32.211303
+EXTENSION         14 49.955233 16.709415
+EXTENSION         12 42.839398 26.011362
+EXTENSION         12 67.349982 40.601666
+EXTENSION         10 31.428483 23.056860
+EXTENSION         56 15.187639 14.609932
+EXTENSION         10 31.384130 23.046634
+EXTENSION         12 42.746886 25.997101
+EXTENSION         12 42.828509 26.006087
+EXTENSION         10 44.109983 32.220121
+EXTENSION          8 57.235377 48.966355
+EXTENSION         12 60.835144 36.899579
+EXTENSION         12 55.070598 33.301513
+REFLECTION        16 41.287555 13.218596
+EXTENSION          8 39.670481 33.581310
+EXTENSION         10 30.024184 22.833647
+EXTENSION         10 74.821414 54.976167
+EXTENSION          8 58.316355 49.651980
+EXTENSION         14 44.917981 15.344411
+EXTENSION         10 50.244213 36.766898
+EXTENSION         10 38.061960 27.679151
+EXTENSION         12 48.762809 29.629006
+EXTENSION         12 67.530944 40.621846
+BUILD              4 60.183032 54.904080
+EXTENSION          8 38.627492 32.971086
+REFLECTION        16 45.885397 13.504086
+EXTENSION         10 36.495776 27.440092
+REFLECTION        16 27.590474 12.372766
+EXTENSION         14 33.010685 12.552666
+REFLECTION        16 41.402016 13.218953
+EXTENSION         10 44.491309 32.271140
+EXTENSION          8 45.573335 38.767622
+EXTENSION         14 56.195967 18.111266
+EXTENSION         12 55.301668 33.331808
+EXTENSION         10 43.556472 32.135007
+EXTENSION         10 68.992849 50.476715
+EXTENSION         10 31.105500 23.013708
+LO-REDUCTION       6 66.447594 60.764888
+EXTENSION         10 24.928203 18.449622
+EXTENSION         10 49.428918 36.644068
+EXTENSION         14 50.800784 21.425556
+REFLECTION        16 50.467325 13.783409
+EXTENSION         14 33.772826 12.574269
+EXTENSION         10 37.302380 27.571103
+EXTENSION         10 31.689884 23.094028
+EXTENSION         12 42.977169 26.025753
+REFLECTION        16 41.277418 13.218746
+EXTENSION         14 39.029350 13.952440
+EXTENSION         12 30.676511 18.725684
+EXTENSION         14 61.363701 19.489288
+LO-REDUCTION      58 15.098960 14.609932
+EXTENSION         14 38.870871 13.941939
+EXTENSION         12 30.643023 18.721239
+EXTENSION         10 55.151714 41.120543
+EXTENSION         14 39.021243 13.940281
+EXTENSION         12 42.996311 26.031164
+EXTENSION         14 50.164534 16.716079
+EXTENSION         14 55.119136 18.086781
+EXTENSION         12 73.245098 44.216620
+EXTENSION         12 29.868565 18.617259
+HI-REDUCTION      18 33.287570 13.218596
+EXTENSION         10 37.695623 27.623295
+EXTENSION         10 55.840006 41.236078
+REFLECTION        16 36.795206 12.939715
+EXTENSION         12 49.033939 29.666573
+EXTENSION         14 44.241106 15.315626
+EXTENSION         14 61.705913 19.487063
+LO-REDUCTION       6 60.183032 54.904080
+HI-REDUCTION      18 36.949058 13.504086
+EXTENSION         12 36.992167 22.398573
+REFLECTION        16 27.542739 12.372939
+EXTENSION         10 37.078870 27.532601
+EXTENSION         10 43.572238 32.137572
+EXTENSION         12 36.110252 22.282793
+EXTENSION         12 43.197892 26.055131
+HI-REDUCTION      18 22.355467 12.372766
+HI-REDUCTION      18 33.343631 13.218953
+REFLECTION        16 45.957984 13.501298
+EXTENSION         14 50.563714 16.720406
+EXTENSION         12 42.683281 25.989871
+EXTENSION         12 30.502294 18.707051
+EXTENSION         12 67.378639 40.605358
+EXTENSION          8 64.450547 54.976462
+EXTENSION         12 24.420036 15.062612
+EXTENSION         12 48.581094 29.605521
+REFLECTION        16 44.374987 20.350360
+REFLECTION        16 27.653990 12.374724
+HI-REDUCTION      18 40.599543 13.783409
+EXTENSION         12 36.579721 22.346478
+EXTENSION         12 30.815807 18.744813
+EXTENSION         14 39.289708 13.945029
+HI-REDUCTION      18 33.282839 13.218746
+EXTENSION         14 28.003544 11.170510
+REFLECTION        16 32.177969 12.657048
+REFLECTION        16 50.469373 13.784732
+EXTENSION         12 54.377469 33.204908
+EXTENSION         14 27.960702 11.173111
+REFLECTION        16 32.171224 12.654006
+REFLECTION        16 32.150978 12.654603
+REFLECTION        16 41.314908 13.219863
+LO-REDUCTION      60 14.992257 14.609932
+EXTENSION         14 39.303180 13.951244
+REFLECTION        16 45.787066 13.501669
+EXTENSION         14 66.557681 20.866310
+EXTENSION         12 36.785712 22.371483
+LO-REDUCTION      20 30.204931 13.218596
+EXTENSION         12 54.781615 33.262361
+EXTENSION         14 44.747166 15.338407
+EXTENSION         14 26.608137 11.147881
+REFLECTION        16 36.694068 12.935541
+HI-REDUCTION      18 29.680820 12.939715
+REFLECTION        16 50.514067 13.783233
+HI-REDUCTION      18 22.332305 12.372939
+EXTENSION          8 58.637495 49.863428
+EXTENSION         14 32.388749 12.546426
+EXTENSION         14 33.945584 12.568395
+EXTENSION         12 42.693464 25.990671
+EXTENSION         14 39.681577 13.954690
+LO-REDUCTION      20 33.497373 13.504086
+EXTENSION         12 36.442202 22.329368
+LO-REDUCTION      20 30.248438 13.218953
+HI-REDUCTION      20 20.371458 12.372766
+REFLECTION        16 41.378132 13.219289
+HI-REDUCTION      18 36.984037 13.501298
+EXTENSION         14 38.752848 13.942255
+EXTENSION         14 27.685923 11.177477
+EXTENSION         14 43.933524 15.315448
+EXTENSION         14 61.419496 19.491664
+EXTENSION         10 61.853727 45.771338
+EXTENSION         14 22.198834 9.789285
+HI-REDUCTION      18 37.100277 20.350360
+HI-REDUCTION      18 22.387658 12.374724
+LO-REDUCTION      20 36.779202 13.783409
+EXTENSION         14 33.190172 12.556771
+LO-REDUCTION      16 23.056860 11.170510
+EXTENSION         14 28.265685 11.181066
+REFLECTION        16 32.211303 12.653289
+LO-REDUCTION      20 30.201604 13.218746
+HI-REDUCTION      18 26.011362 12.657048
+HI-REDUCTION      18 40.601666 13.784732
+EXTENSION         14 48.966355 16.686044
+HI-REDUCTION      18 25.997101 12.654603
+LO-REDUCTION      16 23.046634 11.173111
+HI-REDUCTION      18 26.006087 12.654006
+HI-REDUCTION      18 33.301513 13.219863
+REFLECTION        16 32.220121 12.654375
+REFLECTION        16 54.976167 14.068224
+HI-REDUCTION      18 36.899579 13.501669
+EXTENSION         62 14.932289 14.572153
+EXTENSION         14 49.651980 16.701497
+EXTENSION         14 33.581310 12.563059
+REFLECTION        16 36.766898 12.938929
+HI-REDUCTION      22 21.309173 13.218596
+HI-REDUCTION      18 29.629006 12.935541
+LO-REDUCTION      16 22.833647 11.147881
+HI-REDUCTION      18 40.621846 13.783233
+LO-REDUCTION      20 26.956875 12.939715
+HI-REDUCTION      20 20.353696 12.372939
+EXTENSION         10 56.049747 41.271960
+REFLECTION        16 27.440092 12.375169
+REFLECTION        16 32.271140 12.654508
+EXTENSION         14 38.767622 13.942563
+HI-REDUCTION      22 23.448723 13.504086
+HI-REDUCTION      22 21.326074 13.218953
+REFLECTION        16 27.679151 12.372001
+HI-REDUCTION      22 17.609734 12.372766
+EXTENSION         14 32.971086 12.564098
+HI-REDUCTION      18 33.331808 13.219289
+LO-REDUCTION      20 33.524034 13.501298
+LO-REDUCTION      16 23.013708 11.177477
+REFLECTION        16 36.644068 12.936771
+REFLECTION        16 32.135007 12.654682
+EXTENSION         12 60.764888 36.892736
+REFLECTION        16 50.476715 13.785445
+LO-REDUCTION      16 18.449622 9.789285
+LO-REDUCTION      20 34.263393 19.834463
+HI-REDUCTION      20 20.397147 12.374724
+HI-REDUCTION      22 25.577640 13.783409
+REFLECTION        16 27.571103 12.372261
+HI-REDUCTION      18 18.725684 11.170510
+HI-REDUCTION      18 26.025753 12.653289
+LO-REDUCTION      16 23.094028 11.181066
+LO-REDUCTION      20 23.659253 12.526016
+HI-REDUCTION      22 21.308984 13.218746
+LO-REDUCTION      20 36.781495 13.784732
+REFLECTION        16 41.120543 13.219654
+LO-REDUCTION      20 23.654082 12.519650
+LO-REDUCTION      20 23.647629 12.521122
+HI-REDUCTION      18 18.721239 11.173111
+LO-REDUCTION      20 30.216150 13.219863
+LO-REDUCTION      18 44.216620 13.587065
+REFLECTION        16 41.236078 13.218376
+LO-REDUCTION      20 33.458380 13.501669
+HI-REDUCTION      18 26.031164 12.654375
+EXTENSION         64 14.749602 14.213104
+REFLECTION        16 27.623295 12.372808
+HI-REDUCTION      18 29.666573 12.938929
+HI-REDUCTION      24 17.355826 13.218596
+LO-REDUCTION      20 26.915357 12.935541
+LO-REDUCTION      20 36.796212 13.783233
+HI-REDUCTION      18 18.617259 11.147881
+HI-REDUCTION      22 17.598666 12.372939
+EXTENSION         12 54.904080 33.281663
+HI-REDUCTION      18 22.282793 12.375169
+HI-REDUCTION      18 26.055131 12.654508
+REFLECTION        16 32.137572 12.656592
+HI-REDUCTION      22 19.192875 12.939715
+LO-REDUCTION      24 18.107583 13.155478
+HI-REDUCTION      24 17.364884 13.218953
+LO-REDUCTION      24 16.281415 11.868694
+LO-REDUCTION      20 30.239146 13.219289
+HI-REDUCTION      18 22.398573 12.372001
+HI-REDUCTION      22 23.457289 13.501298
+REFLECTION        16 27.532601 12.375455
+HI-REDUCTION      18 29.605521 12.936771
+HI-REDUCTION      18 18.707051 11.177477
+HI-REDUCTION      18 25.989871 12.654682
+HI-REDUCTION      18 15.062612 9.789285
+EXTENSION         14 54.976462 18.090320
+HI-REDUCTION      18 40.605358 13.785445
+HI-REDUCTION      22 26.219814 19.834463
+HI-REDUCTION      22 17.627386 12.374724
+LO-REDUCTION      24 19.482716 13.016482
+HI-REDUCTION      18 22.346478 12.372261
+HI-REDUCTION      20 17.103854 11.170510
+LO-REDUCTION      20 23.669315 12.519213
+HI-REDUCTION      22 17.054465 12.526016
+HI-REDUCTION      18 18.744813 11.181066
+HI-REDUCTION      24 17.356523 13.218746
+HI-REDUCTION      22 25.580433 13.784732
+HI-REDUCTION      18 33.204908 13.219654
+HI-REDUCTION      22 21.314811 13.219863
+HI-REDUCTION      22 17.049225 12.519650
+HI-REDUCTION      20 17.100813 11.173111
+HI-REDUCTION      20 29.180361 13.587065
+HI-REDUCTION      22 17.048189 12.521122
+HI-REDUCTION      22 23.431833 13.501669
+LO-REDUCTION      20 26.945655 12.938929
+HI-REDUCTION      18 33.262361 13.218376
+LO-REDUCTION      20 23.674041 12.521810
+HI-REDUCTION      18 22.371483 12.372808
+EXTENSION         66 14.609932 13.819011
+HI-REDUCTION      22 19.172746 12.935541
+HI-REDUCTION      22 25.583439 13.783233
+LO-REDUCTION      26 16.707649 13.218596
+HI-REDUCTION      20 17.020713 11.147881
+LO-REDUCTION      24 16.272823 11.868474
+EXTENSION         14 49.863428 16.716565
+HI-REDUCTION      20 20.316017 12.375169
+LO-REDUCTION      20 23.692105 12.521858
+HI-REDUCTION      18 25.990671 12.656592
+HI-REDUCTION      26 13.358462 11.868694
+HI-REDUCTION      26 15.392151 13.155478
+LO-REDUCTION      26 16.724504 13.218953
+LO-REDUCTION      24 18.111266 13.146333
+HI-REDUCTION      22 21.322170 13.219289
+HI-REDUCTION      24 15.861128 12.939715
+HI-REDUCTION      20 20.404748 12.372001
+HI-REDUCTION      18 22.329368 12.375455
+LO-REDUCTION      20 26.897850 12.936771
+HI-REDUCTION      20 17.090834 11.177477
+LO-REDUCTION      20 23.642349 12.521587
+LO-REDUCTION      20 14.514573 9.789285
+LO-REDUCTION      20 36.784434 13.785445
+REFLECTION        16 45.771338 13.504284
+HI-REDUCTION      24 22.741666 19.834463
+LO-REDUCTION      24 16.296250 11.874024
+HI-REDUCTION      22 14.879278 11.170510
+HI-REDUCTION      22 17.054924 12.519213
+HI-REDUCTION      20 20.364799 12.372261
+HI-REDUCTION      26 16.262491 13.016482
+HI-REDUCTION      24 14.351906 12.526016
+HI-REDUCTION      20 17.119257 11.181066
+LO-REDUCTION      26 16.709415 13.218746
+LO-REDUCTION      20 30.140824 13.219654
+LO-REDUCTION      24 19.489288 13.018722
+HI-REDUCTION      24 17.359978 13.219863
+HI-REDUCTION      22 22.073945 13.587065
+HI-REDUCTION      24 14.346282 12.519650
+HI-REDUCTION      22 19.188030 12.938929
+HI-REDUCTION      22 14.877981 11.173111
+LO-REDUCTION      20 30.185521 13.218376
+HI-REDUCTION      22 17.058237 12.521810
+HI-REDUCTION      24 14.346841 12.521122
+LO-REDUCTION      24 19.487063 13.016153
+LO-REDUCTION      24 18.086781 13.150496
+HI-REDUCTION      24 15.846814 12.935541
+HI-REDUCTION      20 20.383955 12.372808
+HI-REDUCTION      26 13.354812 11.868474
+LO-REDUCTION      68 14.572153 13.819011
+REFLECTION        16 41.271960 13.221145
+HI-REDUCTION      22 17.575705 12.375169
+HI-REDUCTION      22 17.063845 12.521858
+HI-REDUCTION      22 14.827497 11.147881
+HI-REDUCTION      28 14.505803 13.218596
+LO-REDUCTION      20 23.642717 12.523844
+HI-REDUCTION      28 12.557556 11.868694
+HI-REDUCTION      28 14.510829 13.218953
+HI-REDUCTION      24 17.362689 13.219289
+LO-REDUCTION      28 14.377341 13.150053
+HI-REDUCTION      26 15.389660 13.146333
+HI-REDUCTION      22 19.168159 12.936771
+HI-REDUCTION      22 14.873128 11.177477
+LO-REDUCTION      26 15.344411 12.939715
+HI-REDUCTION      22 17.630880 12.372001
+HI-REDUCTION      20 20.352729 12.375455
+HI-REDUCTION      22 11.744067 9.789285
+HI-REDUCTION      22 17.047042 12.521587
+HI-REDUCTION      18 36.892736 13.504284
+HI-REDUCTION      22 25.581874 13.785445
+LO-REDUCTION      26 21.425556 19.606078
+HI-REDUCTION      24 13.833225 11.170510
+HI-REDUCTION      26 13.367762 11.874024
+HI-REDUCTION      24 14.348986 12.519213
+LO-REDUCTION      26 13.952440 12.526016
+LO-REDUCTION      28 14.988265 13.016482
+HI-REDUCTION      22 21.284978 13.219654
+LO-REDUCTION      26 16.716079 13.219863
+HI-REDUCTION      22 17.605925 12.372261
+HI-REDUCTION      28 14.507028 13.218746
+HI-REDUCTION      22 14.890048 11.181066
+HI-REDUCTION      26 16.266533 13.018722
+REFLECTION        24 20.866310 12.541492
+HI-REDUCTION      24 15.858057 12.938929
+HI-REDUCTION      22 21.302145 13.218376
+LO-REDUCTION      26 13.940281 12.519650
+HI-REDUCTION      24 13.832627 11.173111
+HI-REDUCTION      26 16.263124 13.016153
+LO-REDUCTION      26 15.315626 12.935541
+HI-REDUCTION      28 12.552666 11.868474
+LO-REDUCTION      26 13.941939 12.521122
+HI-REDUCTION      24 14.351960 12.521810
+HI-REDUCTION      26 15.383234 13.150496
+LO-REDUCTION      24 16.255390 11.871049
+HI-REDUCTION      24 14.354048 12.521858
+REFLECTION        70 14.343513 13.706412
+HI-REDUCTION      18 33.281663 13.221145
+HI-REDUCTION      30 12.372766 11.868694
+HI-REDUCTION      22 17.046740 12.523844
+HI-REDUCTION      24 13.793057 11.147881
+HI-REDUCTION      22 17.617899 12.372808
+LO-REDUCTION      30 13.755851 13.218953
+LO-REDUCTION      30 13.504086 13.150053
+LO-REDUCTION      30 13.753482 13.218596
+LO-REDUCTION      28 14.373610 13.144735
+LO-REDUCTION      26 16.720406 13.219289
+HI-REDUCTION      24 15.846152 12.936771
+HI-REDUCTION      24 13.829753 11.177477
+HI-REDUCTION      28 13.798816 12.939715
+LO-REDUCTION      24 16.298098 11.869169
+HI-REDUCTION      22 17.600123 12.375455
+LO-REDUCTION      24 10.303330 9.789285
+HI-REDUCTION      24 14.346846 12.521587
+HI-REDUCTION      28 20.350360 19.606078
+LO-REDUCTION      20 33.453505 13.504284
+LO-REDUCTION      24 19.491664 13.020851
+HI-REDUCTION      26 12.750263 11.170510
+HI-REDUCTION      28 12.574269 11.874024
+LO-REDUCTION      26 13.945029 12.519213
+LO-REDUCTION      30 13.783409 12.935340
+HI-REDUCTION      28 12.855844 12.526016
+HI-REDUCTION      28 14.509994 13.219863
+HI-REDUCTION      24 17.343787 13.219654
+LO-REDUCTION      30 13.754292 13.218746
+HI-REDUCTION      26 16.420615 12.541492
+LO-REDUCTION      24 16.278665 11.868362
+LO-REDUCTION      28 14.991364 13.018722
+HI-REDUCTION      24 13.842374 11.181066
+LO-REDUCTION      26 15.338407 12.938929
+HI-REDUCTION      28 12.848041 12.519650
+HI-REDUCTION      24 17.352405 13.218376
+HI-REDUCTION      26 12.750366 11.173111
+LO-REDUCTION      28 14.988248 13.016153
+HI-REDUCTION      28 13.784521 12.935541
+HI-REDUCTION      28 12.849759 12.521122
+LO-REDUCTION      26 13.951244 12.521810
+HI-REDUCTION      30 12.372939 11.868474
+LO-REDUCTION      28 14.371324 13.147058
+LO-REDUCTION      26 13.954690 12.521858
+HI-REDUCTION      26 13.348626 11.871049
+HI-REDUCTION      24 14.346844 12.523844
+HI-REDUCTION      32 12.333676 11.868694
+REFLECTION        72 14.213104 13.616756
+LO-REDUCTION      20 30.201443 13.221145
+HI-REDUCTION      26 12.721868 11.147881
+LO-REDUCTION      24 16.288018 11.869617
+HI-REDUCTION      32 13.281800 13.150053
+LO-REDUCTION      30 13.501298 13.144735
+HI-REDUCTION      28 14.509839 13.219289
+HI-REDUCTION      32 13.280849 13.218596
+HI-REDUCTION      32 13.280235 13.218953
+LO-REDUCTION      26 15.315448 12.936771
+HI-REDUCTION      26 12.749457 11.177477
+HI-REDUCTION      26 9.941566 9.789285
+LO-REDUCTION      30 13.144276 12.939715
+LO-REDUCTION      24 16.275354 11.874370
+HI-REDUCTION      26 13.366118 11.869169
+LO-REDUCTION      26 13.942255 12.521587
+LO-REDUCTION      30 20.303617 19.606078
+HI-REDUCTION      22 23.431391 13.504284
+HI-REDUCTION      26 16.268008 13.020851
+LO-REDUCTION      28 12.177123 11.103551
+HI-REDUCTION      30 12.374724 11.874024
+HI-REDUCTION      28 12.848857 12.519213
+LO-REDUCTION      30 13.756502 13.219863
+HI-REDUCTION      30 12.657048 12.526016
+LO-REDUCTION      32 13.053765 12.935340
+LO-REDUCTION      28 14.068224 12.515814
+LO-REDUCTION      26 16.686044 13.219654
+HI-REDUCTION      32 13.279965 13.218746
+HI-REDUCTION      26 13.357673 11.868362
+HI-REDUCTION      28 13.796077 12.938929
+LO-REDUCTION      30 13.784732 12.936259
+HI-REDUCTION      26 12.757737 11.181066
+LO-REDUCTION      30 13.783233 12.935309
+LO-REDUCTION      28 12.177596 11.105224
+LO-REDUCTION      26 16.701497 13.218376
+HI-REDUCTION      30 12.654006 12.519650
+HI-REDUCTION      32 12.331801 11.868474
+HI-REDUCTION      30 12.654603 12.521122
+LO-REDUCTION      30 13.134312 12.935541
+LO-REDUCTION      30 13.501669 13.147058
+HI-REDUCTION      28 12.852384 12.521810
+HI-REDUCTION      28 12.852873 12.521858
+HI-REDUCTION      28 12.546426 11.871049
+HI-REDUCTION      34 12.052988 11.868694
+HI-REDUCTION      22 21.311160 13.221145
+LO-REDUCTION      26 13.942563 12.523844
+LO-REDUCTION      74 13.819011 13.616756
+HI-REDUCTION      34 13.215158 13.150053
+HI-REDUCTION      32 13.276007 13.144735
+LO-REDUCTION      28 12.154626 11.102026
+HI-REDUCTION      26 13.361923 11.869617
+HI-REDUCTION      34 13.276687 13.158384
+LO-REDUCTION      30 13.755691 13.219289
+HI-REDUCTION      28 13.786546 12.936771
+HI-REDUCTION      34 13.275864 13.158490
+LO-REDUCTION      28 12.177698 11.108386
+LO-REDUCTION      28 9.876189 9.789285
+HI-REDUCTION      26 13.359541 11.874370
+HI-REDUCTION      28 12.568395 11.869169
+HI-REDUCTION      32 13.021031 12.939715
+HI-REDUCTION      28 12.850370 12.521587
+REFLECTION        32 19.834463 19.497301
+LO-REDUCTION      24 18.090320 13.158564
+LO-REDUCTION      28 14.992636 13.020851
+HI-REDUCTION      30 12.088960 11.103551
+HI-REDUCTION      32 12.341013 11.874024
+HI-REDUCTION      30 12.653289 12.519213
+HI-REDUCTION      32 12.573093 12.526016
+HI-REDUCTION      32 13.283309 13.219863
+LO-REDUCTION      30 13.587065 12.515814
+HI-REDUCTION      28 14.501179 13.219654
+HI-REDUCTION      34 13.276217 13.158249
+HI-REDUCTION      34 13.016482 12.935340
+LO-REDUCTION      30 13.142434 12.938929
+HI-REDUCTION      28 12.556771 11.868362
+LO-REDUCTION      32 13.055163 12.936259
+LO-REDUCTION      28 12.183783 11.106742
+HI-REDUCTION      28 14.504166 13.218376
+HI-REDUCTION      34 12.051368 11.868474
+LO-REDUCTION      32 13.053548 12.935309
+HI-REDUCTION      30 12.089724 11.105224
+HI-REDUCTION      32 12.566606 12.519650
+HI-REDUCTION      32 12.567974 12.521122
+HI-REDUCTION      32 13.279057 13.147058
+HI-REDUCTION      30 12.654508 12.521858
+HI-REDUCTION      32 13.015794 12.935541
+HI-REDUCTION      30 12.654375 12.521810
+HI-REDUCTION      30 12.375169 11.871049
+LO-REDUCTION      36 12.010777 11.868694
+HI-REDUCTION      24 17.359704 13.221145
+HI-REDUCTION      34 13.210871 13.144735
+HI-REDUCTION      28 12.851739 12.523844
+HI-REDUCTION      36 13.167484 13.150053
+LO-REDUCTION      30 13.136652 12.936771
+HI-REDUCTION      32 13.282338 13.219289
+LO-REDUCTION      76 13.706412 13.616756
+HI-REDUCTION      36 13.237831 13.158384
+HI-REDUCTION      30 12.089797 11.102026
+HI-REDUCTION      36 13.238137 13.158490
+HI-REDUCTION      28 12.563059 11.869617
+HI-REDUCTION      30 12.091065 11.108386
+HI-REDUCTION      30 9.864622 9.789285
+HI-REDUCTION      28 12.564098 11.874370
+HI-REDUCTION      30 12.372001 11.869169
+HI-REDUCTION      34 12.978073 12.939715
+EXTENSION         34 19.731301 19.010300
+HI-REDUCTION      30 12.654682 12.521587
+HI-REDUCTION      32 11.192422 11.080291
+HI-REDUCTION      26 15.387374 13.158564
+LO-REDUCTION      30 13.785445 12.937617
+LO-REDUCTION      34 12.061536 11.874024
+HI-REDUCTION      34 13.278114 13.160490
+HI-REDUCTION      34 12.565920 12.519864
+LO-REDUCTION      30 13.752642 13.219654
+HI-REDUCTION      32 12.565377 12.519213
+HI-REDUCTION      32 13.020009 12.938929
+HI-REDUCTION      32 12.762072 12.515814
+HI-REDUCTION      36 13.237696 13.158249
+HI-REDUCTION      36 12.989289 12.935340
+HI-REDUCTION      34 13.018722 12.936259
+LO-REDUCTION      30 13.752704 13.218376
+HI-REDUCTION      30 12.372261 11.868362
+HI-REDUCTION      34 13.016153 12.935309
+HI-REDUCTION      30 12.089810 11.106742
+LO-REDUCTION      36 12.009644 11.868474
+HI-REDUCTION      34 12.559665 12.513837
+HI-REDUCTION      32 11.193606 11.081580
+HI-REDUCTION      32 12.329889 11.871049
+HI-REDUCTION      34 12.970450 12.935541
+HI-REDUCTION      34 12.561118 12.515180
+HI-REDUCTION      32 12.567945 12.521858
+HI-REDUCTION      34 13.212354 13.147058
+HI-REDUCTION      38 11.877944 11.868694
+HI-REDUCTION      30 12.656592 12.523844
+HI-REDUCTION      32 12.567791 12.521810
+LO-REDUCTION      26 16.716565 13.221145
+HI-REDUCTION      36 13.161634 13.144735
+HI-REDUCTION      32 13.017378 12.936771
+HI-REDUCTION      34 13.277141 13.159558
+HI-REDUCTION      38 13.161350 13.150053
+HI-REDUCTION      38 13.218953 13.153221
+HI-REDUCTION      78 13.642911 13.616756
+HI-REDUCTION      32 11.181471 11.078935
+LO-REDUCTION      32 9.806878 9.789285
+HI-REDUCTION      38 13.218596 13.153275
+HI-REDUCTION      30 12.372808 11.869617
+HI-REDUCTION      32 11.195601 11.084019
+HI-REDUCTION      30 12.375455 11.874370
+HI-REDUCTION      32 12.337901 11.869169
+HI-REDUCTION      36 12.949527 12.939715
+HI-REDUCTION      36 19.606078 19.010300
+HI-REDUCTION      32 12.568258 12.521587
+LO-REDUCTION      28 14.375517 13.151758
+HI-REDUCTION      34 11.170510 11.000995
+LO-REDUCTION      32 13.056404 12.937617
+HI-REDUCTION      36 11.940388 11.874024
+HI-REDUCTION      36 13.239634 13.160490
+HI-REDUCTION      32 13.286529 13.219654
+HI-REDUCTION      34 12.976663 12.938929
+HI-REDUCTION      34 12.559489 12.513011
+HI-REDUCTION      34 12.593987 12.515814
+HI-REDUCTION      36 12.537582 12.519864
+HI-REDUCTION      38 13.218746 13.153113
+HI-REDUCTION      36 12.989459 12.935309
+HI-REDUCTION      38 12.968269 12.935340
+HI-REDUCTION      36 12.990417 12.936259
+HI-REDUCTION      32 13.280139 13.218376
+HI-REDUCTION      32 11.197397 11.082807
+HI-REDUCTION      32 12.333400 11.868362
+HI-REDUCTION      38 11.877818 11.868474
+HI-REDUCTION      34 11.173111 11.002513
+HI-REDUCTION      34 12.050931 11.871049
+HI-REDUCTION      36 12.533178 12.513837
+HI-REDUCTION      36 12.534136 12.515180
+HI-REDUCTION      36 12.942808 12.935541
+HI-REDUCTION      34 12.562190 12.515414
+HI-REDUCTION      36 13.164439 13.147058
+HI-REDUCTION      32 12.571766 12.523844
+REFLECTION        40 11.871995 11.859250
+HI-REDUCTION      34 12.972519 12.936771
+HI-REDUCTION      38 13.156040 13.144735
+HI-REDUCTION      34 12.562110 12.515351
+HI-REDUCTION      28 14.512382 13.221145
+HI-REDUCTION      36 13.239006 13.159558
+HI-REDUCTION      40 13.173806 13.153221
+Exiting from Nelder Mead minimizer
+    40 function evaluations used
+HI-REDUCTION      34 11.147881 10.992981
+HI-REDUCTION      80 13.631931 13.616756
+HI-REDUCTION      34 9.805460 9.783400
+HI-REDUCTION      40 13.173456 13.153275
+HI-REDUCTION      34 11.177477 11.005263
+HI-REDUCTION      32 12.335944 11.869617
+HI-REDUCTION      32 12.337305 11.874370
+LO-REDUCTION      34 12.056784 11.869169
+HI-REDUCTION      38 12.948698 12.939715
+HI-REDUCTION      36 11.103551 10.979627
+EXTENSION         38 19.497301 18.538569
+HI-REDUCTION      34 12.561606 12.515538
+LO-REDUCTION      30 13.504284 13.151758
+HI-REDUCTION      34 13.020851 12.937617
+LO-REDUCTION      38 11.881123 11.864644
+HI-REDUCTION      34 13.277297 13.161903
+HI-REDUCTION      36 12.947815 12.938929
+HI-REDUCTION      38 13.219863 13.154863
+HI-REDUCTION      36 12.532459 12.513011
+LO-REDUCTION      36 12.550650 12.515814
+HI-REDUCTION      38 12.526016 12.514742
+HI-REDUCTION      38 12.968091 12.935309
+HI-REDUCTION      34 13.275462 13.158077
+HI-REDUCTION      40 13.173580 13.153113
+REFLECTION        40 11.871426 11.858716
+LO-REDUCTION      40 12.953043 12.935340
+HI-REDUCTION      38 12.969691 12.936259
+HI-REDUCTION      34 11.181066 11.005775
+HI-REDUCTION      34 12.052751 11.868362
+LO-REDUCTION      36 12.009589 11.871049
+HI-REDUCTION      36 11.105224 10.981666
+HI-REDUCTION      38 12.940403 12.933553
+HI-REDUCTION      36 12.534203 12.515414
+HI-REDUCTION      38 12.521122 12.510726
+HI-REDUCTION      34 12.563508 12.518268
+HI-REDUCTION      38 12.519650 12.509564
+HI-REDUCTION      42 11.871015 11.854353
+HI-REDUCTION      38 13.158204 13.147058
+Exiting from Nelder Mead minimizer
+    40 function evaluations used
+HI-REDUCTION      36 12.944559 12.936771
+LO-REDUCTION      30 13.758913 13.221145
+HI-REDUCTION      42 13.163505 13.151303
+HI-REDUCTION      38 13.219289 13.154118
+HI-REDUCTION      36 12.534134 12.515351
+LO-REDUCTION      36 9.792484 9.782555
+HI-REDUCTION      36 11.102026 10.970087
+HI-REDUCTION      82 13.631105 13.616756
+HI-REDUCTION      36 11.108386 10.985387
+LO-REDUCTION      34 12.055332 11.869617
+HI-REDUCTION      42 13.163267 13.151117
+HI-REDUCTION      34 12.058748 11.874370
+LO-REDUCTION      38 11.080291 10.979627
+HI-REDUCTION      40 12.947215 12.939715
+HI-REDUCTION      36 11.935464 11.869169
+HI-REDUCTION      36 12.534366 12.515538
+EXTENSION         40 19.397053 17.975219
+HI-REDUCTION      32 13.284163 13.151758
+HI-REDUCTION      36 12.992820 12.937617
+HI-REDUCTION      36 13.241372 13.161903
+HI-REDUCTION      38 12.947583 12.938929
+HI-REDUCTION      40 13.175331 13.154863
+HI-REDUCTION      40 11.874779 11.860424
+HI-REDUCTION      38 12.541492 12.515814
+HI-REDUCTION      40 12.521442 12.514742
+HI-REDUCTION      38 12.519213 12.508901
+LO-REDUCTION      40 12.952860 12.935309
+HI-REDUCTION      36 13.237741 13.158077
+HI-REDUCTION      42 13.163339 13.151139
+HI-REDUCTION      42 11.870872 11.853932
+LO-REDUCTION      40 12.954698 12.936259
+HI-REDUCTION      36 11.106742 10.985718
+LO-REDUCTION      36 12.010602 11.868362
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+HI-REDUCTION      40 12.940324 12.933553
+HI-REDUCTION      38 12.521858 12.510973
+HI-REDUCTION      38 11.879829 11.871049
+HI-REDUCTION      36 12.536548 12.518268
+HI-REDUCTION      44 11.868694 11.854353
+LO-REDUCTION      38 11.081580 10.981666
+Exiting from Nelder Mead minimizer
+    40 function evaluations used
+HI-REDUCTION      38 12.942929 12.935350
+HI-REDUCTION      40 12.515561 12.508836
+HI-REDUCTION      32 13.285941 13.221145
+HI-REDUCTION      44 13.158384 13.147817
+HI-REDUCTION      40 12.516918 12.510216
+HI-REDUCTION      40 13.174452 13.154118
+HI-REDUCTION      38 12.521810 12.510926
+LO-REDUCTION      38 9.789285 9.782555
+HI-REDUCTION      36 11.936258 11.869617
+LO-REDUCTION      38 11.084019 10.985387
+Exiting from Nelder Mead minimizer
+    84 function evaluations used
+LO-REDUCTION      38 11.078935 10.970087
+HI-REDUCTION      44 13.158490 13.147683
+LO-REDUCTION      36 12.015324 11.874370
+HI-REDUCTION      40 11.000995 10.955494
+LO-REDUCTION      38 11.876519 11.860683
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+HI-REDUCTION      38 12.521587 12.511046
+EXTENSION         42 19.010300 17.302322
+HI-REDUCTION      34 13.216195 13.151758
+HI-REDUCTION      38 12.971217 12.937617
+HI-REDUCTION      42 13.164782 13.152896
+HI-REDUCTION      40 12.945949 12.938925
+HI-REDUCTION      38 13.219654 13.155899
+HI-REDUCTION      40 12.527273 12.515814
+HI-REDUCTION      42 11.874024 11.860424
+HI-REDUCTION      40 12.515120 12.508290
+HI-REDUCTION      42 12.519864 12.513126
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+HI-REDUCTION      38 13.218376 13.152955
+LO-REDUCTION      44 11.868474 11.853932
+HI-REDUCTION      44 13.158249 13.147676
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+LO-REDUCTION      38 11.082807 10.985718
+HI-REDUCTION      38 11.877679 11.868362
+HI-REDUCTION      40 12.517551 12.510747
+REFLECTION        40 11.872739 11.860350
+HI-REDUCTION      38 12.523844 12.513319
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+HI-REDUCTION      40 11.002513 10.956994
+HI-REDUCTION      34 13.280326 13.162653
+HI-REDUCTION      42 12.513837 12.507323
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+LO-REDUCTION      40 12.942331 12.935350
+HI-REDUCTION      42 13.164067 13.152050
+HI-REDUCTION      42 12.515180 12.508650
+Exiting from Nelder Mead minimizer
+    40 function evaluations used
+HI-REDUCTION      40 12.517509 12.510706
+HI-REDUCTION      40 11.005263 10.959809
+LO-REDUCTION      38 11.876252 11.860614
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+HI-REDUCTION      40 10.992981 10.951432
+REFLECTION        42 10.994789 10.951394
+HI-REDUCTION      38 11.882157 11.874370
+HI-REDUCTION      40 11.871316 11.856098
+HI-REDUCTION      40 12.517343 12.510634
+HI-REDUCTION      36 13.169592 13.151758
+EXTENSION         44 18.538569 15.627859
+LO-REDUCTION      40 12.956593 12.937617
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+HI-REDUCTION      44 13.160490 13.149327
+HI-REDUCTION      40 13.175461 13.155899
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+HI-REDUCTION      46 11.858716 11.853607
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+HI-REDUCTION      42 12.513011 12.506762
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+HI-REDUCTION      40 13.173132 13.152955
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+HI-REDUCTION      42 11.872616 11.856649
+HI-REDUCTION      42 12.515414 12.509123
+REFLECTION        40 11.871817 11.859030
+HI-REDUCTION      40 11.005775 10.959156
+HI-REDUCTION      40 12.519477 12.512947
+REFLECTION        42 10.996327 10.953243
+HI-REDUCTION      36 13.241249 13.162653
+HI-REDUCTION      44 13.159558 13.148544
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+HI-REDUCTION      42 12.515351 12.509084
+REFLECTION        42 10.999121 10.956695
+HI-REDUCTION      40 11.871656 11.856116
+REFLECTION        42 10.986915 10.945715
+LO-REDUCTION      44 10.979627 10.951394
+REFLECTION        40 11.876671 11.864613
+HI-REDUCTION      42 11.869169 11.856098
+HI-REDUCTION      38 13.162914 13.151758
+REFLECTION        46 17.975219 15.449868
+Exiting from Nelder Mead minimizer
+    42 function evaluations used
+HI-REDUCTION      42 12.515538 12.509047
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+HI-REDUCTION      42 13.164998 13.153390
+Exiting from Nelder Mead minimizer
+    48 function evaluations used
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+HI-REDUCTION      44 11.871049 11.856649
+HI-REDUCTION      42 13.163003 13.150800
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+REFLECTION        42 10.999567 10.956097
+HI-REDUCTION      42 12.518268 12.511326
+HI-REDUCTION      42 11.870772 11.854142
+LO-REDUCTION      44 10.981666 10.953243
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+HI-REDUCTION      38 13.221145 13.156578
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+HI-REDUCTION      42 11.869617 11.856116
+LO-REDUCTION      44 10.985387 10.956695
+LO-REDUCTION      44 10.970087 10.945715
+HI-REDUCTION      42 11.875056 11.859195
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+Exiting from Nelder Mead minimizer
+    40 function evaluations used
+LO-REDUCTION      48 17.302322 15.449868
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+HI-REDUCTION      44 13.161903 13.149883
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+HI-REDUCTION      44 13.158077 13.147387
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+LO-REDUCTION      44 10.985718 10.956097
+HI-REDUCTION      44 11.868362 11.854142
+HI-REDUCTION      40 13.177280 13.156578
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+Exiting from Nelder Mead minimizer
+    44 function evaluations used
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+HI-REDUCTION      44 11.874370 11.859195
+HI-REDUCTION      46 10.951432 10.945715
+LO-REDUCTION      50 15.783641 15.449868
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+HI-REDUCTION      42 13.166370 13.154781
+LO-REDUCTION      48 10.949957 10.944704
+HI-REDUCTION      46 11.864613 11.859195
+REFLECTION        52 15.627859 15.390994
+HI-REDUCTION      44 13.162653 13.151075
+Exiting from Nelder Mead minimizer
+    48 function evaluations used
+Exiting from Nelder Mead minimizer
+    50 function evaluations used
+LO-REDUCTION      54 15.523336 15.363133
+Exiting from Nelder Mead minimizer
+    46 function evaluations used
+HI-REDUCTION      56 15.449868 15.361941
+REFLECTION        58 15.390994 15.337805
+HI-REDUCTION      60 15.363133 15.292686
+REFLECTION        62 15.361941 15.280946
+LO-REDUCTION      64 15.337805 15.280946
+HI-REDUCTION      66 15.292686 15.280946
+HI-REDUCTION      68 15.290470 15.280946
+Exiting from Nelder Mead minimizer
+    70 function evaluations used

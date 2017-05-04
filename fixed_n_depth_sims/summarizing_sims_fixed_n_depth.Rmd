@@ -1,0 +1,62 @@
+---
+title: "Simulations for Harmon & Nuismer"
+date: "December 19th, 2016"
+output:
+  pdf_document:
+    fig_caption: true
+    latex_engine: xelatex
+    keep_tex: true
+    toc: false
+header-includes:
+   - \usepackage{setspace}
+   - \usepackage{lineno}
+   - \usepackage[font=scriptsize,labelfont=bf]{caption}
+   - \usepackage{indentfirst}
+fontsize: 12pt
+geometry: margin=1in
+---
+
+
+# Summarizing results from simulations with fixed Ntip and depth
+
+```{r echo = FALSE}
+library("cowplot")
+results.small <- read.csv("results_symtrans_boxconstrain_fixed_n_depth_small.txt", sep = "\t")
+results.large <- read.csv("results_symtrans_boxconstrain_fixed_n_depth_large.txt", sep = "\t")
+
+results.full <- rbind(results.small[, 1:8], results.large[, 1:8])
+results.full$size <- c(rep("Small Trees - 20 tips", 100), rep("Large Trees - 100 tips", 100))
+```
+
+```{r echo = FALSE, warning = FALSE}
+g.small <- ggplot(data = results.small) +
+    geom_violin(aes(x = 1, y = q01.fit)) +
+    geom_jitter(aes(x = 1, y = q01.fit), colour = "darkgrey", alpha = 0.75, size = 1) +
+    geom_point(aes(x = 1, y = q01.sim), colour = "darkred", size = 4) +
+    ylim(0, 0.2) +
+    labs(y = "Estimated q01", title = "Small trees - 20 tips") +
+    theme(legend.position = "bottom")
+
+g.large <- ggplot(data = results.large) +
+    geom_violin(aes(x = 1, y = q01.fit)) +
+    geom_jitter(aes(x = 1, y = q01.fit), colour = "darkgrey", alpha = 0.75, size = 1) +
+    geom_point(aes(x = 1, y = q01.sim), colour = "darkblue", size = 4) +
+    ylim(0, 0.01) +
+    labs(y = "Estimated q01", title = "Large trees - 100 tips") +
+    theme(legend.position = "bottom")
+
+plot_grid(g.small,
+          g.large,
+          ncol = 2,
+          align = 'h')
+```
+
+```{r warning = FALSE}
+## logLik for small trees' fitting
+summary(results.small$llik.fit)
+
+
+
+## logLik for large trees' fitting
+summary(results.large$llik.fit)
+```
