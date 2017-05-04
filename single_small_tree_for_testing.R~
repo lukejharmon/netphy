@@ -1,0 +1,25 @@
+small.short.tree <- TreeSim::sim.bd.taxa.age(n = 4, numbsim = 1, lambda = 0.4, mu = 0, age = 2, mrca = TRUE)
+small.long.tree <- TreeSim::sim.bd.taxa.age(n = 4, numbsim = 1, lambda = 0.4, mu = 0, age = 10, mrca = TRUE)
+
+small.short.net <- simPhyloNetwork(small.short.tree[[1]], qRate = 0.1, sProb = 0.5)
+small.long.net <- simPhyloNetwork(small.long.tree[[1]], qRate = 0.1, sProb = 0.5)
+
+
+foo.short <- function(pars) {
+    q01.small <- exp(par[1])
+    q10.small <- exp(par[2])
+    pSpec <- exp(par[3])
+    fitPhyloNetwork(small.short.tree[[1]], small.short.net, c(q01.small, q01.small, pSpec))
+}
+
+foo.long <- function(pars) {
+    q01.small <- exp(par[1])
+    q10.small <- exp(par[2])
+    pSpec <- exp(par[3])
+    fitPhyloNetwork(small.long.tree[[1]], small.long.net, c(q01.small, q01.small, pSpec))
+}
+
+
+
+fit.small.short <- optim(log(c(0.1, 0.1, 0.5)), fn = foo.short, control = list(trace = 6, reltol = .Machine$double.eps^.25))
+fit.small.short <- optim(log(c(0.1, 0.1, 0.5)), fn = foo.long, control = list(trace = 6, reltol = .Machine$double.eps^.25))
